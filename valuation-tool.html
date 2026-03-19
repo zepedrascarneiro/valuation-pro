@@ -64,28 +64,7 @@
             pointer-events: none;
         }
 
-        /* ===== Floating Price Badge ===== */
-        .price-badge {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #D4A853, #F5D78E);
-            color: #08090a;
-            padding: 8px 16px;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 0.85rem;
-            z-index: 1000;
-            box-shadow: 0 4px 20px rgba(212,168,83,0.3);
-            animation: badgePulse 3s ease-in-out infinite;
-            cursor: default;
-            letter-spacing: 0.3px;
-        }
-
-        @keyframes badgePulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 4px 20px rgba(212,168,83,0.3); }
-            50% { transform: scale(1.05); box-shadow: 0 6px 30px rgba(212,168,83,0.5); }
-        }
+        /* Price badge removed */
 
         /* ===== Container ===== */
         .container {
@@ -1503,8 +1482,7 @@
 </head>
 <body>
 
-    <!-- Floating Price Badge -->
-    <div class="price-badge">R$ 99,00</div>
+    <!-- Floating Price Badge removed - too pushy -->
 
     <div class="container">
         <div class="portal-link">
@@ -1514,25 +1492,29 @@
         <!-- ===== HERO SECTION ===== -->
         <section class="hero" id="heroSection">
             <div class="hero-badge">VALUATION PRO</div>
-            <h1>Descubra o <span class="gold">Valor Real</span><br>da Sua Empresa</h1>
-            <p>Metodologia profissional de M&A utilizada por especialistas para avaliações de mercado. Resultados em minutos, com precisão de consultoria.</p>
+            <h1>Quanto vale a<br><span class="gold">sua empresa?</span></h1>
+            <p>Avaliacao baseada em multiplos de mercado e transacoes reais de M&A no Brasil. Preencha os dados e receba uma estimativa fundamentada em minutos.</p>
 
             <div class="trust-badges">
                 <div class="trust-badge">
-                    <div class="icon">&#x1F4CA;</div>
-                    <div><strong>2.847+</strong><br>empresas avaliadas</div>
+                    <div class="icon">&#x1F3E6;</div>
+                    <div><strong>Multiplos</strong><br>de mercado reais</div>
                 </div>
                 <div class="trust-badge">
-                    <div class="icon">&#x1F3E6;</div>
-                    <div><strong>Metodologia</strong><br>M&A Profissional</div>
+                    <div class="icon">&#x1F4C8;</div>
+                    <div><strong>17 setores</strong><br>da economia brasileira</div>
                 </div>
                 <div class="trust-badge">
                     <div class="icon">&#x1F512;</div>
-                    <div><strong>100%</strong><br>Confidencial</div>
+                    <div><strong>Processamento</strong><br>100% local</div>
                 </div>
             </div>
 
-            <button class="cta-btn" onclick="startWizard()">INICIAR AVALIA&Ccedil;&Atilde;O &rarr;</button>
+            <button class="cta-btn" onclick="startWizard()">INICIAR AVALIA&Ccedil;&Atilde;O</button>
+
+            <div style="margin-top:30px; color:rgba(255,255,255,0.35); font-size:0.8rem; max-width:480px; margin-left:auto; margin-right:auto; line-height:1.6;">
+                Nenhum dado e enviado para servidores. Todo o processamento acontece no seu navegador.
+            </div>
         </section>
 
         <!-- ===== WIZARD ===== -->
@@ -1995,23 +1977,20 @@
                     <!-- Paywall Overlay -->
                     <div class="paywall-overlay" id="paywallOverlay">
                         <div class="paywall-card">
-                            <div class="paywall-price-tag">OFERTA ESPECIAL</div>
-                            <h3>Desbloqueie o Relatorio Completo</h3>
-                            <div class="subtitle">Acesse todas as 15 metricas detalhadas da sua avaliacao</div>
+                            <h3>Relatorio Completo de Valuation</h3>
+                            <div class="subtitle">Analise detalhada com 15 indicadores, diagnostico e PDF</div>
 
                             <ul class="paywall-features">
-                                <li><span class="check">&#x2713;</span> 15 metricas detalhadas de valuation</li>
-                                <li><span class="check">&#x2713;</span> Relatorio completo em PDF personalizado</li>
-                                <li><span class="check">&#x2713;</span> Diagnostico geral com recomendacoes</li>
-                                <li><span class="check">&#x2713;</span> Benchmarks comparativos de mercado</li>
-                                <li><span class="check">&#x2713;</span> Acesso por 30 dias para recalcular</li>
+                                <li><span class="check">&#x2713;</span> 15 metricas de valuation detalhadas</li>
+                                <li><span class="check">&#x2713;</span> Diagnostico com benchmarks do seu setor</li>
+                                <li><span class="check">&#x2713;</span> Relatorio em PDF para apresentacao</li>
+                                <li><span class="check">&#x2713;</span> Recalcule quantas vezes quiser por 30 dias</li>
                             </ul>
 
-                            <button class="btn-pay" onclick="unlockReport()">DESBLOQUEAR POR R$ 99,00</button>
+                            <button class="btn-pay" onclick="unlockReport()">ACESSAR RELATORIO &mdash; R$ 99,00</button>
 
                             <div class="guarantee-badge">
-                                <span class="shield">&#x1F6E1;</span>
-                                Garantia de 7 dias ou seu dinheiro de volta
+                                Satisfacao garantida ou reembolso em ate 7 dias
                             </div>
                         </div>
                     </div>
@@ -2025,15 +2004,15 @@
         <!-- ===== FOOTER ===== -->
         <div class="footer">
             <div class="footer-brand">Jose Felipe Carneiro</div>
-            <div class="footer-tagline">Entusiasta do empreendedorismo brasileiro</div>
-            <div class="footer-tagline">Metodologia baseada em analise de mercado e multiplos setoriais</div>
+            <div class="footer-tagline">Multiplos baseados em transacoes reais de M&A no Brasil (fontes: PwC, KPMG, EY, Dealogic)</div>
+            <div class="footer-tagline" style="margin-top:4px; font-size:0.78rem; opacity:0.5;">Esta ferramenta fornece uma estimativa indicativa. Para uma avaliacao formal, consulte um especialista em M&A.</div>
             <div class="footer-links">
                 <a href="https://www.josefelipe.com.br" target="_blank">Portal Oficial</a>
                 <a href="https://instagram.com/josefelipec" target="_blank">@josefelipec</a>
                 <a href="https://linkedin.com/in/josefelipec" target="_blank">LinkedIn</a>
                 <a href="mailto:contato@josefelipe.com.br">Contato</a>
             </div>
-            <div class="footer-copy">&copy; 2025 Jose Felipe Carneiro - Todos os direitos reservados</div>
+            <div class="footer-copy">&copy; 2026 Jose Felipe Carneiro - Todos os direitos reservados</div>
         </div>
     </div>
 
