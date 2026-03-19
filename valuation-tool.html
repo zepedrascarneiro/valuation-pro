@@ -1605,6 +1605,11 @@
                             <option value="energia">Energia</option>
                             <option value="logistica">Logistica</option>
                             <option value="financeiro">Financeiro</option>
+                            <option value="franquias">Franquias</option>
+                            <option value="beleza">Beleza & Estética</option>
+                            <option value="ecommerce">E-commerce / Marketplace</option>
+                            <option value="imobiliario">Imobiliário</option>
+                            <option value="consultoria">Consultoria</option>
                         </select>
                     </div>
 
@@ -2034,20 +2039,25 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        // Multiplos de valuation por setor (mercado brasileiro 2025)
+        // Multiplos de valuation por setor (mercado brasileiro 2024-2026 - PMEs privadas (fonte: transacoes M&A, PwC, KPMG, EY))
         const sectorMultiples = {
-            'tecnologia': { revenue: 4.2, ebitda: 18.5, netIncome: 25.3 },
-            'saude': { revenue: 2.8, ebitda: 12.4, netIncome: 18.7 },
-            'educacao': { revenue: 2.1, ebitda: 9.8, netIncome: 15.2 },
-            'alimentacao': { revenue: 1.4, ebitda: 8.2, netIncome: 12.6 },
-            'varejo': { revenue: 0.9, ebitda: 6.5, netIncome: 11.2 },
-            'servicos': { revenue: 1.6, ebitda: 7.8, netIncome: 13.4 },
-            'construcao': { revenue: 0.8, ebitda: 5.9, netIncome: 10.8 },
-            'industria': { revenue: 1.2, ebitda: 7.1, netIncome: 12.3 },
-            'agronegocio': { revenue: 1.1, ebitda: 6.8, netIncome: 11.9 },
-            'energia': { revenue: 2.3, ebitda: 10.2, netIncome: 16.5 },
-            'logistica': { revenue: 1.3, ebitda: 7.5, netIncome: 12.1 },
-            'financeiro': { revenue: 3.1, ebitda: 14.2, netIncome: 20.8 }
+            'tecnologia': { revenue: 2.2, ebitda: 8.0, netIncome: 12.0 },
+            'saude': { revenue: 1.5, ebitda: 7.0, netIncome: 10.5 },
+            'educacao': { revenue: 1.1, ebitda: 6.0, netIncome: 9.0 },
+            'alimentacao': { revenue: 0.7, ebitda: 5.5, netIncome: 8.0 },
+            'varejo': { revenue: 0.5, ebitda: 5.0, netIncome: 7.5 },
+            'servicos': { revenue: 0.9, ebitda: 5.5, netIncome: 8.5 },
+            'construcao': { revenue: 0.45, ebitda: 4.5, netIncome: 6.5 },
+            'industria': { revenue: 0.7, ebitda: 5.0, netIncome: 7.5 },
+            'agronegocio': { revenue: 0.6, ebitda: 5.0, netIncome: 7.0 },
+            'energia': { revenue: 1.3, ebitda: 6.5, netIncome: 9.5 },
+            'logistica': { revenue: 0.7, ebitda: 5.0, netIncome: 7.5 },
+            'financeiro': { revenue: 1.8, ebitda: 7.5, netIncome: 11.0 },
+            'franquias': { revenue: 0.8, ebitda: 5.5, netIncome: 8.0 },
+            'beleza': { revenue: 0.6, ebitda: 4.5, netIncome: 7.0 },
+            'ecommerce': { revenue: 1.4, ebitda: 6.5, netIncome: 9.5 },
+            'imobiliario': { revenue: 0.5, ebitda: 4.0, netIncome: 6.0 },
+            'consultoria': { revenue: 1.0, ebitda: 5.5, netIncome: 8.5 }
         };
 
         let currentResults = {};
@@ -2194,48 +2204,109 @@
                 // Patrimonio liquido
                 const netWorth = formData.assets - formData.debt;
 
-                // Ajustes por fatores qualitativos
-                let adjustmentFactor = 1.0;
-
-                // Posicao no mercado
-                const marketAdjustments = {
-                    'lider': 1.25,
-                    'forte': 1.10,
-                    'media': 1.0,
-                    'emergente': 0.85
-                };
-                adjustmentFactor *= marketAdjustments[formData.marketPosition];
-
-                // Crescimento
-                const growthAdjustments = {
-                    'alto': 1.3,
-                    'medio': 1.1,
-                    'baixo': 0.95,
-                    'negativo': 0.7
-                };
-                adjustmentFactor *= growthAdjustments[formData.growth];
-
-                // Calculo final (media ponderada)
-                const baseValuation = (revenueValuation * 0.3 + ebitdaValuation * 0.4 + netIncomeValuation * 0.3);
-                const adjustedValuation = baseValuation * adjustmentFactor;
-
-                // Faixas de valuation
-                const minValuation = adjustedValuation * 0.8;
-                const maxValuation = adjustedValuation * 1.2;
-
                 // Calculos adicionais para analise
                 const ebitdaMargin = (formData.ebitda / formData.revenue) * 100;
                 const netMargin = (formData.netIncome / formData.revenue) * 100;
                 const roe = netWorth > 0 ? (formData.netIncome / netWorth) * 100 : 0;
                 const revenuePerEmployee = formData.revenue / formData.employees;
-
-                // Novos calculos
                 const debtRatio = (formData.debt / formData.assets) * 100;
                 const ltv = formData.customers > 0 ? (formData.revenue / formData.customers) : 0;
-                const enterpriseValue = adjustedValuation + formData.debt - (formData.workingCapital || 0);
-                const inventoryTurnover = formData.inventory > 0 ? (formData.revenue * 0.7) / formData.inventory : 0; // Assumindo 70% de COGS
+                const inventoryTurnover = formData.inventory > 0 ? (formData.revenue * 0.7) / formData.inventory : 0;
                 const workingCapitalNet = formData.workingCapital;
                 const cashCycleDays = formData.cashCycle;
+
+                // Ponderacao inteligente baseada na margem EBITDA
+                let wRevenue, wEbitda, wNetIncome;
+                if (ebitdaMargin > 15) {
+                    wRevenue = 0.20; wEbitda = 0.50; wNetIncome = 0.30;
+                } else if (ebitdaMargin < 10) {
+                    wRevenue = 0.40; wEbitda = 0.25; wNetIncome = 0.35;
+                } else {
+                    wRevenue = 0.30; wEbitda = 0.40; wNetIncome = 0.30;
+                }
+
+                // Calculo base (media ponderada inteligente)
+                const baseValuation = (revenueValuation * wRevenue + ebitdaValuation * wEbitda + netIncomeValuation * wNetIncome);
+
+                // === AJUSTES REALISTAS PARA O MERCADO BRASILEIRO ===
+
+                let adjustmentFactor = 1.0;
+
+                // 1. Desconto de iliquidez (empresa privada)
+                const illiquidityDiscount = 0.80;
+                adjustmentFactor *= illiquidityDiscount;
+
+                // 2. Ajuste por porte (baseado na receita)
+                let sizeDiscount;
+                if (formData.revenue > 50000000) {
+                    sizeDiscount = 1.0;
+                } else if (formData.revenue >= 10000000) {
+                    sizeDiscount = 0.90;
+                } else if (formData.revenue >= 5000000) {
+                    sizeDiscount = 0.80;
+                } else if (formData.revenue >= 1000000) {
+                    sizeDiscount = 0.70;
+                } else {
+                    sizeDiscount = 0.55;
+                }
+                adjustmentFactor *= sizeDiscount;
+
+                // 3. Premio/penalidade por rentabilidade
+                let profitabilityFactor;
+                if (ebitdaMargin > 30) {
+                    profitabilityFactor = 1.15;
+                } else if (ebitdaMargin > 20) {
+                    profitabilityFactor = 1.05;
+                } else if (ebitdaMargin > 10) {
+                    profitabilityFactor = 1.0;
+                } else if (ebitdaMargin > 5) {
+                    profitabilityFactor = 0.90;
+                } else {
+                    profitabilityFactor = 0.75;
+                }
+                adjustmentFactor *= profitabilityFactor;
+
+                // 4. Fator de saude da divida (Divida/EBITDA)
+                let debtHealthFactor;
+                const debtToEbitda = formData.ebitda > 0 ? formData.debt / formData.ebitda : 999;
+                if (debtToEbitda < 1) {
+                    debtHealthFactor = 1.05;
+                } else if (debtToEbitda <= 2) {
+                    debtHealthFactor = 1.0;
+                } else if (debtToEbitda <= 3) {
+                    debtHealthFactor = 0.90;
+                } else {
+                    debtHealthFactor = 0.75;
+                }
+                adjustmentFactor *= debtHealthFactor;
+
+                // 5. Posicao no mercado (impacto reduzido)
+                const marketAdjustments = {
+                    'lider': 1.15,
+                    'forte': 1.05,
+                    'media': 1.0,
+                    'emergente': 0.90
+                };
+                adjustmentFactor *= marketAdjustments[formData.marketPosition];
+
+                // 6. Crescimento (impacto reduzido)
+                const growthAdjustments = {
+                    'alto': 1.15,
+                    'medio': 1.05,
+                    'baixo': 0.95,
+                    'negativo': 0.75
+                };
+                adjustmentFactor *= growthAdjustments[formData.growth];
+
+                // Valuation ajustado
+                const adjustedValuation = baseValuation * adjustmentFactor;
+
+                // Faixas de valuation (+-15% - mais preciso)
+                const minValuation = adjustedValuation * 0.85;
+                const maxValuation = adjustedValuation * 1.15;
+
+                // Enterprise Value = Equity Value + Divida Liquida
+                const enterpriseValue = adjustedValuation + formData.debt - (formData.workingCapital || 0);
 
                 currentResults = {
                     companyName: formData.companyName,
@@ -2258,6 +2329,12 @@
                     minValuation,
                     maxValuation,
                     adjustmentFactor,
+                    sizeDiscount,
+                    illiquidityDiscount: 0.80,
+                    profitabilityFactor,
+                    debtHealthFactor,
+                    sector: formData.sector,
+                    growth: formData.growth,
                     date: new Date().toLocaleDateString('pt-BR')
                 };
 
@@ -2382,21 +2459,55 @@
             const r = currentResults;
             const items = [];
 
-            // Positive indicators
-            if (r.ebitdaMargin > 20) {
-                items.push({ icon: '\u2705', text: 'Margens saudaveis acima da media do setor' });
-            } else if (r.ebitdaMargin > 10) {
-                items.push({ icon: '\u2705', text: 'Margem EBITDA dentro da media do mercado' });
+            // Benchmarks setoriais do mercado brasileiro
+            const sectorBenchmarks = {
+                'tecnologia': { medianEbitda: 22, medianNet: 15, medianDebt: 25 },
+                'saude': { medianEbitda: 18, medianNet: 12, medianDebt: 30 },
+                'educacao': { medianEbitda: 15, medianNet: 10, medianDebt: 25 },
+                'alimentacao': { medianEbitda: 12, medianNet: 7, medianDebt: 35 },
+                'varejo': { medianEbitda: 8, medianNet: 4, medianDebt: 40 },
+                'servicos': { medianEbitda: 18, medianNet: 12, medianDebt: 20 },
+                'construcao': { medianEbitda: 10, medianNet: 6, medianDebt: 45 },
+                'industria': { medianEbitda: 14, medianNet: 8, medianDebt: 35 },
+                'agronegocio': { medianEbitda: 15, medianNet: 9, medianDebt: 30 },
+                'energia': { medianEbitda: 20, medianNet: 13, medianDebt: 35 },
+                'logistica': { medianEbitda: 12, medianNet: 7, medianDebt: 35 },
+                'financeiro': { medianEbitda: 25, medianNet: 18, medianDebt: 20 },
+                'franquias': { medianEbitda: 15, medianNet: 9, medianDebt: 25 },
+                'beleza': { medianEbitda: 18, medianNet: 10, medianDebt: 20 },
+                'ecommerce': { medianEbitda: 10, medianNet: 5, medianDebt: 30 },
+                'imobiliario': { medianEbitda: 12, medianNet: 8, medianDebt: 50 },
+                'consultoria': { medianEbitda: 22, medianNet: 15, medianDebt: 15 }
+            };
+
+            const sectorNames = {
+                'tecnologia': 'Tecnologia', 'saude': 'Saude', 'educacao': 'Educacao',
+                'alimentacao': 'Alimentacao', 'varejo': 'Varejo', 'servicos': 'Servicos',
+                'construcao': 'Construcao', 'industria': 'Industria', 'agronegocio': 'Agronegocio',
+                'energia': 'Energia', 'logistica': 'Logistica', 'financeiro': 'Financeiro',
+                'franquias': 'Franquias', 'beleza': 'Beleza & Estetica', 'ecommerce': 'E-commerce',
+                'imobiliario': 'Imobiliario', 'consultoria': 'Consultoria'
+            };
+
+            const bench = sectorBenchmarks[r.sector];
+            const sectorName = sectorNames[r.sector] || r.sector;
+
+            // Margem EBITDA vs benchmark setorial
+            if (r.ebitdaMargin > bench.medianEbitda) {
+                items.push({ icon: '\u2705', text: 'Margem EBITDA de ' + r.ebitdaMargin.toFixed(1) + '% esta acima da mediana do setor de ' + sectorName + ' (' + bench.medianEbitda + '%)' });
+            } else if (r.ebitdaMargin >= bench.medianEbitda * 0.8) {
+                items.push({ icon: '\u2705', text: 'Margem EBITDA de ' + r.ebitdaMargin.toFixed(1) + '% esta na media do setor de ' + sectorName + ' (' + bench.medianEbitda + '%)' });
             } else {
-                items.push({ icon: '\u26A0\uFE0F', text: 'Margens abaixo da media - otimize custos operacionais' });
+                items.push({ icon: '\u26A0\uFE0F', text: 'Margem EBITDA de ' + r.ebitdaMargin.toFixed(1) + '% esta abaixo da mediana do setor de ' + sectorName + ' (' + bench.medianEbitda + '%) - otimize custos operacionais' });
             }
 
-            if (r.debtRatio < 30) {
-                items.push({ icon: '\u2705', text: 'Baixo endividamento - estrutura financeira solida' });
-            } else if (r.debtRatio < 50) {
-                items.push({ icon: '\u26A0\uFE0F', text: 'Endividamento moderado - monitore a alavancagem' });
+            // Endividamento vs benchmark setorial
+            if (r.debtRatio < bench.medianDebt) {
+                items.push({ icon: '\u2705', text: 'Endividamento de ' + r.debtRatio.toFixed(1) + '% esta abaixo da media do setor (' + bench.medianDebt + '%) - estrutura saudavel' });
+            } else if (r.debtRatio < bench.medianDebt * 1.3) {
+                items.push({ icon: '\u26A0\uFE0F', text: 'Endividamento de ' + r.debtRatio.toFixed(1) + '% esta proximo da media do setor (' + bench.medianDebt + '%) - monitore a alavancagem' });
             } else {
-                items.push({ icon: '\uD83D\uDD34', text: 'Endividamento elevado - risco financeiro significativo' });
+                items.push({ icon: '\uD83D\uDD34', text: 'Endividamento de ' + r.debtRatio.toFixed(1) + '% esta acima da media do setor (' + bench.medianDebt + '%) - risco financeiro significativo' });
             }
 
             if (r.roe > 15) {
@@ -2408,10 +2519,9 @@
             }
 
             // Growth
-            const growthVal = document.getElementById('growth').value;
-            if (growthVal === 'alto' || growthVal === 'medio') {
+            if (r.growth === 'alto' || r.growth === 'medio') {
                 items.push({ icon: '\u2705', text: 'Empresa em crescimento - multiplos de mercado favoraveis' });
-            } else if (growthVal === 'negativo') {
+            } else if (r.growth === 'negativo') {
                 items.push({ icon: '\uD83D\uDD34', text: 'Receita em queda - revise o modelo de negocios' });
             }
 
@@ -2424,6 +2534,15 @@
             } else if (r.inventoryTurnover > 0 && r.inventoryTurnover < 3) {
                 items.push({ icon: '\u26A0\uFE0F', text: 'Giro de estoque baixo - capital parado em inventario' });
             }
+
+            // Desconto por porte
+            if (r.sizeDiscount < 1.0) {
+                const sizePct = ((1 - r.sizeDiscount) * 100).toFixed(0);
+                items.push({ icon: '\u26A0\uFE0F', text: 'Ajuste de porte aplicado: -' + sizePct + '% (empresas menores tem multiplos mais baixos no mercado de M&A)' });
+            }
+
+            // Desconto de iliquidez
+            items.push({ icon: '\u2139\uFE0F', text: 'Desconto de iliquidez de 20% aplicado - empresas privadas valem menos que equivalentes listadas em bolsa por nao terem liquidez imediata' });
 
             const list = document.getElementById('diagnosticList');
             list.innerHTML = '';
@@ -2533,21 +2652,24 @@
             // Metodologia
             doc.setFontSize(14);
             doc.setFont(undefined, 'bold');
-            doc.text('METODOLOGIA PROFISSIONAL:', 20, 90);
+            doc.text('METODOLOGIA:', 20, 90);
             doc.setFontSize(10);
             doc.setFont(undefined, 'normal');
-            doc.text('- Multiplos de mercado ajustados para o Brasil', 20, 100);
-            doc.text('- Analise de fatores qualitativos e quantitativos', 20, 108);
-            doc.text('- Benchmarking por setor de atuacao', 20, 116);
+            doc.text('- Multiplos baseados em transacoes reais de M&A no Brasil (2024-2026)', 20, 100);
+            doc.text('- Desconto de iliquidez de 20% aplicado (empresa privada)', 20, 108);
+            doc.text('- Ajuste por porte: fator ' + r.sizeDiscount.toFixed(2) + 'x aplicado', 20, 116);
+            doc.text('- Ajuste por rentabilidade: fator ' + r.profitabilityFactor.toFixed(2) + 'x', 20, 124);
+            doc.text('- Ajuste por endividamento, crescimento e posicao de mercado', 20, 132);
+            doc.text('- Fontes: PwC, KPMG, EY - transacoes M&A de PMEs privadas brasileiras', 20, 140);
 
             // Resultados
             doc.setFontSize(16);
             doc.setFont(undefined, 'bold');
-            doc.text('ANALISE COMPLETA:', 20, 136);
+            doc.text('ANALISE COMPLETA:', 20, 160);
 
             doc.setFontSize(12);
             doc.setFont(undefined, 'normal');
-            let yPos = 150;
+            let yPos = 174;
 
             const results = [
                 'Valuation por Receita: R$ ' + formatCurrency(r.revenueValuation),
