@@ -24,6 +24,15 @@
     <meta property="twitter:description" content="Calculadora gratuita de valuation com múltiplos reais de M&A. Descubra o valor da sua empresa em minutos.">
     <meta property="twitter:image" content="https://www.josefelipe.com.br/lovable-uploads/d08ef557-2a05-4a2c-a1a6-12bb07b532b7.png">
 
+    <!-- Google Ads Tag -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18029764921"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'AW-18029764921');
+    </script>
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2540,9 +2549,18 @@
                 // Salvar dados no localStorage antes de redirecionar
                 localStorage.setItem('vp_pending_unlock', 'true');
                 localStorage.setItem('vp_results', JSON.stringify(currentResults));
-                window.location.href = MERCADO_PAGO_LINK;
+                // Disparar conversao Google Ads antes de redirecionar
+                gtag('event', 'conversion', {
+                    'send_to': 'AW-18029764921/iFnwCJqLvY0cELnCoZVD',
+                    'value': 99.0,
+                    'currency': 'BRL',
+                    'event_callback': function() {
+                        window.location.href = MERCADO_PAGO_LINK;
+                    }
+                });
+                // Fallback: redirecionar apos 1s caso o gtag demore
+                setTimeout(function() { window.location.href = MERCADO_PAGO_LINK; }, 1000);
             } else {
-                // Modo demo: desbloqueia direto (remover quando tiver link do MP)
                 unlockReport();
             }
         }
