@@ -2728,7 +2728,35 @@
             showToast('Relatorio desbloqueado com sucesso!');
         }
 
-        // Verificar se voltou do pagamento ou já tem acesso
+        // Mostrar resultados (esconde formulario, mostra container)
+        function showResultsContainer() {
+            var wizard = document.getElementById('wizardContainer');
+            var resultContainer = document.getElementById('resultContainer');
+            if (wizard) wizard.style.display = 'none';
+            if (resultContainer) {
+                resultContainer.classList.add('active');
+                setTimeout(function() {
+                    resultContainer.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+            }
+        }
+
+        // Restaurar resultados do localStorage e mostrar
+        function restoreAndShowResults(doUnlock) {
+            var saved = localStorage.getItem('vp_results');
+            if (saved) {
+                currentResults = JSON.parse(saved);
+                showResultsContainer();
+                setTimeout(function() {
+                    displayResults();
+                    if (doUnlock) unlockReport();
+                }, 300);
+            } else if (doUnlock) {
+                unlockReport();
+            }
+        }
+
+        // Verificar se voltou do pagamento ou ja tem acesso
         (function checkPaymentReturn() {
             var params = new URLSearchParams(window.location.search);
             var pending = localStorage.getItem('vp_pending_unlock');
@@ -2742,31 +2770,13 @@
 
             // Voltou do Mercado Pago com sucesso
             if (pending && (isApproved || hasPaymentId)) {
-                var saved = localStorage.getItem('vp_results');
-                if (saved) {
-                    currentResults = JSON.parse(saved);
-                    setTimeout(function() {
-                        displayResults();
-                        unlockReport();
-                    }, 500);
-                } else {
-                    unlockReport();
-                }
+                restoreAndShowResults(true);
             }
             // Voltou do MP com qualquer parametro (fallback - se pending, desbloqueia)
             else if (pending && window.location.search.length > 1) {
-                var saved2 = localStorage.getItem('vp_results');
-                if (saved2) {
-                    currentResults = JSON.parse(saved2);
-                    setTimeout(function() {
-                        displayResults();
-                        unlockReport();
-                    }, 500);
-                } else {
-                    unlockReport();
-                }
+                restoreAndShowResults(true);
             }
-            // Ja pagou anteriormente (acesso por 30 dias)
+            // Ja pagou anteriormente (acesso por 30 dias) e tem resultados salvos
             else if (alreadyUnlocked) {
                 var unlockDate = localStorage.getItem('vp_unlock_date');
                 if (unlockDate) {
@@ -2774,12 +2784,24 @@
                     if (days > 30) {
                         localStorage.removeItem('vp_unlocked');
                         localStorage.removeItem('vp_unlock_date');
+                        localStorage.removeItem('vp_results');
                     } else {
-                        // Ja tem acesso, esconder CTA e paywall
-                        var ctaInline = document.getElementById('ctaInline');
-                        if (ctaInline) ctaInline.style.display = 'none';
-                        document.getElementById('paywallOverlay').classList.add('hidden');
-                        document.getElementById('lockedContent').classList.add('unlocked');
+                        // Ja tem acesso - restaurar resultados se tiver
+                        var savedResults = localStorage.getItem('vp_results');
+                        if (savedResults && !window.location.search) {
+                            // Nao restaurar automaticamente se nao veio do MP
+                            // Apenas esconder CTA e paywall quando recalcular
+                            var ctaInline = document.getElementById('ctaInline');
+                            if (ctaInline) ctaInline.style.display = 'none';
+                            document.getElementById('paywallOverlay').classList.add('hidden');
+                            document.getElementById('lockedContent').classList.add('unlocked');
+                        } else if (savedResults) {
+                            restoreAndShowResults(false);
+                            var ctaInline2 = document.getElementById('ctaInline');
+                            if (ctaInline2) ctaInline2.style.display = 'none';
+                            document.getElementById('paywallOverlay').classList.add('hidden');
+                            document.getElementById('lockedContent').classList.add('unlocked');
+                        }
                     }
                 }
             }
