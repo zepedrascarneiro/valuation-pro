@@ -2748,10 +2748,15 @@
                 currentResults = JSON.parse(saved);
                 showResultsContainer();
                 setTimeout(function() {
-                    displayResults();
+                    try {
+                        displayResults();
+                    } catch(e) {
+                        console.warn('displayResults parcial:', e.message);
+                    }
                     if (doUnlock) unlockReport();
                 }, 300);
             } else if (doUnlock) {
+                showResultsContainer();
                 unlockReport();
             }
         }
