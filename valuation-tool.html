@@ -1799,6 +1799,15 @@
                 <div class="result-date" id="resultDate"></div>
             </div>
 
+            <!-- CTA COMPRA - Logo apos o numero do valuation -->
+            <div class="cta-unlock-inline" id="ctaInline">
+                <div style="text-align:center; padding:24px 20px; background:linear-gradient(135deg, rgba(212,168,83,0.08), rgba(212,168,83,0.02)); border:1px solid rgba(212,168,83,0.25); border-radius:16px; margin-bottom:20px;">
+                    <div style="font-size:0.85rem; color:rgba(255,255,255,0.6); margin-bottom:10px;">Desbloqueie o relatorio completo com 15 indicadores</div>
+                    <button class="btn-pay" onclick="handlePayment()" style="margin:0 auto; display:block;">ACESSAR RELAT&Oacute;RIO COMPLETO &mdash; R$ 99,00</button>
+                    <div style="text-align:center; margin-top:8px; font-size:0.65rem; color:rgba(255,255,255,0.3);">Pix &middot; Cart&atilde;o &middot; Boleto &middot; Reembolso em 7 dias</div>
+                </div>
+            </div>
+
             <!-- Free Action Buttons -->
             <div class="free-actions">
                 <button type="button" class="btn-share" onclick="shareResults()">&#x1F4E4; Compartilhar Resultado</button>
@@ -2569,6 +2578,8 @@
             trackConversion('unlock');
             document.getElementById('lockedContent').classList.add('unlocked');
             document.getElementById('paywallOverlay').classList.add('hidden');
+            var ctaInline = document.getElementById('ctaInline');
+            if (ctaInline) ctaInline.style.display = 'none';
             localStorage.setItem('vp_unlocked', 'true');
             localStorage.setItem('vp_unlock_date', Date.now().toString());
             localStorage.removeItem('vp_pending_unlock');
@@ -2577,30 +2588,56 @@
 
         // Verificar se voltou do pagamento ou já tem acesso
         (function checkPaymentReturn() {
-            const params = new URLSearchParams(window.location.search);
-            const pending = localStorage.getItem('vp_pending_unlock');
-            const alreadyUnlocked = localStorage.getItem('vp_unlocked');
+            var params = new URLSearchParams(window.location.search);
+            var pending = localStorage.getItem('vp_pending_unlock');
+            var alreadyUnlocked = localStorage.getItem('vp_unlocked');
+
+            // Detectar retorno do Mercado Pago (multiplos parametros possiveis)
+            var mpStatus = params.get('status') || params.get('collection_status') || '';
+            var mpPaymentId = params.get('payment_id') || params.get('collection_id') || '';
+            var isApproved = mpStatus === 'approved';
+            var hasPaymentId = mpPaymentId.length > 0;
 
             // Voltou do Mercado Pago com sucesso
-            if (pending && (params.get('status') === 'approved' || params.get('collection_status') === 'approved')) {
-                // Restaurar resultados e desbloquear
-                const saved = localStorage.getItem('vp_results');
+            if (pending && (isApproved || hasPaymentId)) {
+                var saved = localStorage.getItem('vp_results');
                 if (saved) {
                     currentResults = JSON.parse(saved);
                     setTimeout(function() {
                         displayResults();
                         unlockReport();
                     }, 500);
+                } else {
+                    unlockReport();
                 }
             }
-            // Já pagou anteriormente (acesso por 30 dias)
+            // Voltou do MP com qualquer parametro (fallback - se pending, desbloqueia)
+            else if (pending && window.location.search.length > 1) {
+                var saved2 = localStorage.getItem('vp_results');
+                if (saved2) {
+                    currentResults = JSON.parse(saved2);
+                    setTimeout(function() {
+                        displayResults();
+                        unlockReport();
+                    }, 500);
+                } else {
+                    unlockReport();
+                }
+            }
+            // Ja pagou anteriormente (acesso por 30 dias)
             else if (alreadyUnlocked) {
-                const unlockDate = localStorage.getItem('vp_unlock_date');
+                var unlockDate = localStorage.getItem('vp_unlock_date');
                 if (unlockDate) {
-                    const days = (Date.now() - parseInt(unlockDate)) / (1000 * 60 * 60 * 24);
+                    var days = (Date.now() - parseInt(unlockDate)) / (1000 * 60 * 60 * 24);
                     if (days > 30) {
                         localStorage.removeItem('vp_unlocked');
                         localStorage.removeItem('vp_unlock_date');
+                    } else {
+                        // Ja tem acesso, esconder CTA e paywall
+                        var ctaInline = document.getElementById('ctaInline');
+                        if (ctaInline) ctaInline.style.display = 'none';
+                        document.getElementById('paywallOverlay').classList.add('hidden');
+                        document.getElementById('lockedContent').classList.add('unlocked');
                     }
                 }
             }
