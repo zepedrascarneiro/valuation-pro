@@ -4001,103 +4001,278 @@
             const r = currentResults;
             var sym = getCurrencyPrefix();
 
-            // Cabecalho
-            doc.setFontSize(22);
-            doc.setFont(undefined, 'bold');
-            doc.text(t('pdf.title'), 20, 30);
+            // Colors
+            var gold = [180, 142, 58];
+            var darkBg = [20, 22, 26];
+            var white = [255, 255, 255];
+            var lightGray = [200, 200, 200];
+            var green = [74, 222, 128];
+            var yellow = [251, 191, 36];
+            var red = [248, 113, 113];
 
-            doc.setFontSize(12);
-            doc.setFont(undefined, 'normal');
-            doc.text(t('pdf.date') + ' ' + r.date, 20, 50);
-            doc.text(t('pdf.company') + ' ' + r.companyName, 20, 60);
-            doc.text(t('pdf.sector') + ' ' + t('sector.' + r.sector), 20, 70);
+            // ===== PAGE 1: COVER + MAIN RESULT =====
 
-            // Metodologia
-            doc.setFontSize(14);
-            doc.setFont(undefined, 'bold');
-            doc.text(t('pdf.methodology'), 20, 90);
+            // Dark background
+            doc.setFillColor(darkBg[0], darkBg[1], darkBg[2]);
+            doc.rect(0, 0, 210, 297, 'F');
+
+            // Gold top bar
+            doc.setFillColor(gold[0], gold[1], gold[2]);
+            doc.rect(0, 0, 210, 4, 'F');
+
+            // Logo / Brand
             doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            doc.text('- ' + t('pdf.methLine1'), 20, 100);
-            doc.text('- ' + t('pdf.methLine2'), 20, 108);
-            doc.text('- ' + t('pdf.methLine3', { v: r.sizeDiscount.toFixed(2) }), 20, 116);
-            doc.text('- ' + t('pdf.methLine4', { v: r.profitabilityFactor.toFixed(2) }), 20, 124);
-            doc.text('- ' + t('pdf.methLine5'), 20, 132);
-            doc.text('- ' + t('pdf.methLine6'), 20, 140);
-
-            // Resultados
-            doc.setFontSize(16);
+            doc.setTextColor(gold[0], gold[1], gold[2]);
             doc.setFont(undefined, 'bold');
-            doc.text(t('pdf.results'), 20, 160);
+            doc.text('VALUATION PRO', 105, 25, { align: 'center' });
 
-            doc.setFontSize(12);
+            // Title
+            doc.setFontSize(28);
+            doc.setTextColor(white[0], white[1], white[2]);
+            doc.text('RELATORIO DE VALUATION', 105, 45, { align: 'center' });
+
+            // Company name
+            doc.setFontSize(16);
+            doc.setTextColor(gold[0], gold[1], gold[2]);
+            doc.text(r.companyName.toUpperCase(), 105, 60, { align: 'center' });
+
+            // Date and sector
+            doc.setFontSize(10);
+            doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
+            doc.text(t('pdf.date') + ' ' + r.date + '  |  ' + t('pdf.sector') + ' ' + t('sector.' + r.sector), 105, 72, { align: 'center' });
+
+            // Separator line
+            doc.setDrawColor(gold[0], gold[1], gold[2]);
+            doc.setLineWidth(0.5);
+            doc.line(30, 80, 180, 80);
+
+            // Main value box
+            doc.setFillColor(30, 33, 38);
+            doc.roundedRect(25, 90, 160, 50, 4, 4, 'F');
+            doc.setDrawColor(gold[0], gold[1], gold[2]);
+            doc.setLineWidth(0.8);
+            doc.roundedRect(25, 90, 160, 50, 4, 4, 'S');
+
+            doc.setFontSize(11);
+            doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
+            doc.text('VALOR ESTIMADO DA EMPRESA', 105, 103, { align: 'center' });
+
+            doc.setFontSize(26);
+            doc.setTextColor(gold[0], gold[1], gold[2]);
+            doc.setFont(undefined, 'bold');
+            doc.text(sym + formatCurrency(r.adjustedValuation), 105, 120, { align: 'center' });
+
+            doc.setFontSize(10);
+            doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
             doc.setFont(undefined, 'normal');
-            let yPos = 174;
+            doc.text('Faixa: ' + sym + formatCurrency(r.minValuation) + ' - ' + sym + formatCurrency(r.maxValuation), 105, 133, { align: 'center' });
 
-            const results = [
-                t('cards.revenueVal') + ': ' + sym + formatCurrency(r.revenueValuation),
-                t('cards.ebitdaVal') + ': ' + sym + formatCurrency(r.ebitdaValuation),
-                t('cards.profitVal') + ': ' + sym + formatCurrency(r.netIncomeValuation),
-                t('cards.netWorth') + ': ' + sym + formatCurrency(r.netWorth),
-                '',
-                t('cards.ebitdaMargin') + ': ' + r.ebitdaMargin.toFixed(1) + '%',
-                t('cards.netMargin') + ': ' + r.netMargin.toFixed(1) + '%',
-                'ROE: ' + r.roe.toFixed(1) + '%',
-                t('cards.revenuePerEmployee') + ': ' + sym + formatCurrency(r.revenuePerEmployee),
-                '',
-                t('cards.debtRatio') + ': ' + r.debtRatio.toFixed(1) + '%',
-                t('cards.ltv') + ': ' + (r.ltv > 0 ? sym + formatCurrency(r.ltv) : t('common.na')),
-                'Enterprise Value: ' + sym + formatCurrency(r.enterpriseValue),
-                t('cards.inventoryTurnover') + ': ' + (r.inventoryTurnover > 0 ? r.inventoryTurnover.toFixed(1) + 'x' : t('common.na')),
-                t('cards.workingCapitalLabel') + ': ' + sym + formatCurrency(r.workingCapitalNet),
-                t('cards.cashCycleLabel') + ': ' + (r.cashCycleDays > 0 ? r.cashCycleDays + ' ' + t('common.days') : t('common.na')),
-                t('cards.adjustmentFactor') + ': ' + r.adjustmentFactor.toFixed(2) + 'x',
+            // 3 Method cards
+            var cardY = 155;
+            var cardW = 50;
+            var cardGap = 5;
+            var cardX = 25;
+
+            var methods = [
+                { label: 'Por Receita', value: r.revenueValuation, icon: 'RECEITA' },
+                { label: 'Por EBITDA', value: r.ebitdaValuation, icon: 'EBITDA' },
+                { label: 'Por Lucro', value: r.netIncomeValuation, icon: 'LUCRO' }
             ];
 
-            results.forEach(function(line) {
-                doc.text(line, 20, yPos);
-                yPos += 8;
+            methods.forEach(function(m, i) {
+                var x = cardX + i * (cardW + cardGap);
+                doc.setFillColor(30, 33, 38);
+                doc.roundedRect(x, cardY, cardW, 35, 3, 3, 'F');
+                doc.setDrawColor(50, 54, 60);
+                doc.roundedRect(x, cardY, cardW, 35, 3, 3, 'S');
+
+                doc.setFontSize(7);
+                doc.setTextColor(gold[0], gold[1], gold[2]);
+                doc.setFont(undefined, 'bold');
+                doc.text(m.icon, x + cardW/2, cardY + 10, { align: 'center' });
+
+                doc.setFontSize(12);
+                doc.setTextColor(white[0], white[1], white[2]);
+                doc.text(sym + formatCurrency(m.value), x + cardW/2, cardY + 22, { align: 'center' });
+
+                doc.setFontSize(7);
+                doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
+                doc.setFont(undefined, 'normal');
+                doc.text(m.label, x + cardW/2, cardY + 30, { align: 'center' });
             });
 
-            yPos += 6;
-            doc.setFontSize(14);
-            doc.setFont(undefined, 'bold');
-            doc.text(t('pdf.estimated') + ' ' + sym + formatCurrency(r.adjustedValuation), 20, yPos);
-            yPos += 10;
+            // Health metrics section
+            var secY = 205;
             doc.setFontSize(12);
-            doc.setFont(undefined, 'normal');
-            doc.text(t('pdf.range') + ' ' + sym + formatCurrency(r.minValuation) + ' - ' + sym + formatCurrency(r.maxValuation), 20, yPos);
-
-            // Diagnostico
-            yPos += 16;
-            doc.setFontSize(14);
+            doc.setTextColor(gold[0], gold[1], gold[2]);
             doc.setFont(undefined, 'bold');
-            doc.text(t('pdf.diagnostic'), 20, yPos);
-            yPos += 10;
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
+            doc.text('SAUDE FINANCEIRA', 25, secY);
+            doc.setDrawColor(gold[0], gold[1], gold[2]);
+            doc.setLineWidth(0.3);
+            doc.line(25, secY + 2, 185, secY + 2);
 
-            const diagItems = document.querySelectorAll('#diagnosticList li');
-            diagItems.forEach(function(li) {
-                const text = li.textContent.trim();
-                if (yPos > 270) {
-                    doc.addPage();
-                    yPos = 20;
-                }
-                doc.text('- ' + text, 20, yPos);
-                yPos += 8;
+            var metrics = [
+                { label: 'Margem EBITDA', value: r.ebitdaMargin.toFixed(1) + '%', threshold: r.ebitdaMargin > 15 },
+                { label: 'Margem Liquida', value: r.netMargin.toFixed(1) + '%', threshold: r.netMargin > 10 },
+                { label: 'ROE', value: r.roe.toFixed(1) + '%', threshold: r.roe > 15 },
+                { label: 'Endividamento', value: r.debtRatio.toFixed(1) + '%', threshold: r.debtRatio < 40 },
+                { label: 'Receita/Funcionario', value: sym + formatCurrency(r.revenuePerEmployee), threshold: r.revenuePerEmployee > 100000 },
+                { label: 'Fator de Ajuste', value: r.adjustmentFactor.toFixed(2) + 'x', threshold: r.adjustmentFactor > 0.8 }
+            ];
+
+            var mY = secY + 10;
+            metrics.forEach(function(m, i) {
+                var col = i < 3 ? 0 : 1;
+                var row = i % 3;
+                var mx = 25 + col * 82;
+                var my = mY + row * 12;
+
+                doc.setFontSize(9);
+                doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
+                doc.setFont(undefined, 'normal');
+                doc.text(m.label, mx, my);
+
+                var color = m.threshold ? green : yellow;
+                doc.setTextColor(color[0], color[1], color[2]);
+                doc.setFont(undefined, 'bold');
+                doc.text(m.value, mx + 70, my, { align: 'right' });
             });
 
-            // Rodape
-            if (yPos > 260) {
-                doc.addPage();
-                yPos = 20;
-            }
-            yPos = Math.max(yPos + 10, 250);
-            doc.setFontSize(10);
-            doc.text(t('pdf.footer1'), 20, yPos);
-            doc.text(t('pdf.footer2'), 20, yPos + 10);
-            doc.text('www.qualmeuvaluation.com.br', 20, yPos + 20);
+            // Patrimonial section
+            var patY = mY + 42;
+            doc.setFontSize(12);
+            doc.setTextColor(gold[0], gold[1], gold[2]);
+            doc.setFont(undefined, 'bold');
+            doc.text('INDICADORES PATRIMONIAIS', 25, patY);
+            doc.setDrawColor(gold[0], gold[1], gold[2]);
+            doc.line(25, patY + 2, 185, patY + 2);
+
+            var patMetrics = [
+                { label: 'Patrimonio Liquido', value: sym + formatCurrency(r.netWorth) },
+                { label: 'Enterprise Value', value: sym + formatCurrency(r.enterpriseValue) },
+                { label: 'LTV por Cliente', value: r.ltv > 0 ? sym + formatCurrency(r.ltv) : 'N/A' },
+                { label: 'Capital de Giro', value: sym + formatCurrency(r.workingCapitalNet) },
+                { label: 'Giro de Estoque', value: r.inventoryTurnover > 0 ? r.inventoryTurnover.toFixed(1) + 'x' : 'N/A' },
+                { label: 'Ciclo de Caixa', value: r.cashCycleDays > 0 ? r.cashCycleDays + ' dias' : 'N/A' }
+            ];
+
+            var pY = patY + 10;
+            patMetrics.forEach(function(m, i) {
+                var col = i < 3 ? 0 : 1;
+                var row = i % 3;
+                var px = 25 + col * 82;
+                var py = pY + row * 12;
+
+                doc.setFontSize(9);
+                doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
+                doc.setFont(undefined, 'normal');
+                doc.text(m.label, px, py);
+                doc.setTextColor(white[0], white[1], white[2]);
+                doc.setFont(undefined, 'bold');
+                doc.text(m.value, px + 70, py, { align: 'right' });
+            });
+
+            // ===== PAGE 2: METHODOLOGY + DIAGNOSTIC =====
+            doc.addPage();
+
+            // Dark background
+            doc.setFillColor(darkBg[0], darkBg[1], darkBg[2]);
+            doc.rect(0, 0, 210, 297, 'F');
+
+            // Gold top bar
+            doc.setFillColor(gold[0], gold[1], gold[2]);
+            doc.rect(0, 0, 210, 4, 'F');
+
+            // Methodology
+            doc.setFontSize(14);
+            doc.setTextColor(gold[0], gold[1], gold[2]);
+            doc.setFont(undefined, 'bold');
+            doc.text('METODOLOGIA', 25, 25);
+            doc.setDrawColor(gold[0], gold[1], gold[2]);
+            doc.setLineWidth(0.3);
+            doc.line(25, 27, 185, 27);
+
+            doc.setFontSize(9);
+            doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
+            doc.setFont(undefined, 'normal');
+
+            var methLines = [
+                'Multiplos baseados em transacoes reais de M&A do mercado brasileiro',
+                'Desconto de iliquidez de ' + ((1 - r.illiquidityDiscount) * 100).toFixed(0) + '% aplicado (empresa privada)',
+                'Ajuste por porte: fator ' + r.sizeDiscount.toFixed(2) + 'x aplicado',
+                'Ajuste por rentabilidade: fator ' + r.profitabilityFactor.toFixed(2) + 'x',
+                'Ajuste por saude da divida: fator ' + r.debtHealthFactor.toFixed(2) + 'x',
+                'Ajuste por crescimento e posicao de mercado',
+                'Fontes: PwC, KPMG, EY - transacoes M&A de PMEs privadas'
+            ];
+
+            var methY = 38;
+            methLines.forEach(function(line) {
+                doc.setFillColor(gold[0], gold[1], gold[2]);
+                doc.circle(28, methY - 1.5, 1.2, 'F');
+                doc.text(line, 33, methY);
+                methY += 9;
+            });
+
+            // Diagnostic
+            var diagY = methY + 15;
+            doc.setFontSize(14);
+            doc.setTextColor(gold[0], gold[1], gold[2]);
+            doc.setFont(undefined, 'bold');
+            doc.text('DIAGNOSTICO GERAL', 25, diagY);
+            doc.setDrawColor(gold[0], gold[1], gold[2]);
+            doc.line(25, diagY + 2, 185, diagY + 2);
+
+            diagY += 12;
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'normal');
+
+            var diagItems = document.querySelectorAll('#diagnosticList li');
+            diagItems.forEach(function(li) {
+                var text = li.textContent.trim();
+                var isGood = text.indexOf('\u2705') > -1 || text.indexOf('saudavel') > -1 || text.indexOf('atrativo') > -1 || text.indexOf('acima') > -1;
+                var isWarning = text.indexOf('\u26A0') > -1 || text.indexOf('Ajuste') > -1;
+                var isInfo = text.indexOf('\u2139') > -1 || text.indexOf('Desconto') > -1;
+
+                // Clean text
+                text = text.replace(/[\u2705\u26A0\uFE0F\u2139\uFE0F]/g, '').trim();
+
+                if (diagY > 270) { doc.addPage(); doc.setFillColor(darkBg[0], darkBg[1], darkBg[2]); doc.rect(0, 0, 210, 297, 'F'); doc.setFillColor(gold[0], gold[1], gold[2]); doc.rect(0, 0, 210, 4, 'F'); diagY = 20; }
+
+                var iconColor = isGood ? green : isWarning ? yellow : [100, 160, 220];
+                doc.setFillColor(iconColor[0], iconColor[1], iconColor[2]);
+                doc.circle(28, diagY - 1.5, 1.5, 'F');
+
+                doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
+                // Word wrap long text
+                var lines = doc.splitTextToSize(text, 150);
+                doc.text(lines, 33, diagY);
+                diagY += lines.length * 5 + 5;
+            });
+
+            // Footer on page 2
+            var footY = Math.max(diagY + 20, 260);
+            if (footY > 280) { doc.addPage(); doc.setFillColor(darkBg[0], darkBg[1], darkBg[2]); doc.rect(0, 0, 210, 297, 'F'); footY = 250; }
+
+            doc.setDrawColor(gold[0], gold[1], gold[2]);
+            doc.setLineWidth(0.3);
+            doc.line(25, footY, 185, footY);
+
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            doc.setFont(undefined, 'normal');
+            doc.text('Valuation Pro - Metodologia baseada em transacoes reais de M&A', 105, footY + 8, { align: 'center' });
+            doc.text('Multiplos setoriais de fontes publicas (PwC, KPMG, EY) - Estimativa indicativa', 105, footY + 14, { align: 'center' });
+            doc.text('www.qualmeuvaluation.com.br', 105, footY + 20, { align: 'center' });
+
+            // Also add footer to page 1
+            doc.setPage(1);
+            doc.setDrawColor(gold[0], gold[1], gold[2]);
+            doc.setLineWidth(0.3);
+            doc.line(25, 285, 185, 285);
+            doc.setFontSize(7);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Valuation Pro | www.qualmeuvaluation.com.br | Estimativa indicativa baseada em multiplos de M&A', 105, 291, { align: 'center' });
 
             doc.save('valuation-' + r.companyName.replace(/\s+/g, '-') + '-' + new Date().getTime() + '.pdf');
         }
