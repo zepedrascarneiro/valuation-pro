@@ -1905,7 +1905,8 @@
 
             <!-- Action Buttons (only after unlock) -->
             <div class="free-actions" id="freeActions" style="display:none;">
-                <button type="button" class="btn-share" onclick="shareResults()">&#x1F4E4; Compartilhar Resultado</button>
+                <button type="button" class="btn-share" onclick="recalculate()" style="background:linear-gradient(135deg, rgba(212,168,83,0.15), rgba(212,168,83,0.05)); border-color:rgba(212,168,83,0.4); color:#D4A853;">&#x1F504; Recalcular Valuation</button>
+                <button type="button" class="btn-share" onclick="shareResults()">&#x1F4E4; Compartilhar</button>
                 <button type="button" class="btn-share" onclick="window.print()">&#x1F5A8; Imprimir</button>
             </div>
 
@@ -4336,6 +4337,25 @@
             doc.text('www.qualmeuvaluation.com.br', 20, yPos + 20);
 
             doc.save('valuation-' + r.companyName.replace(/\s+/g, '-') + '-' + new Date().getTime() + '.pdf');
+        }
+
+        function recalculate() {
+            // Volta ao formulario mantendo o acesso desbloqueado
+            var resultContainer = document.getElementById('resultContainer');
+            var wizard = document.getElementById('wizardContainer');
+            if (resultContainer) resultContainer.classList.remove('active');
+            if (wizard) wizard.style.display = '';
+            // Reset to step 1
+            currentStep = 1;
+            updateProgress();
+            var step1 = document.getElementById('step1');
+            if (step1) step1.classList.add('active');
+            // Clear form
+            document.querySelectorAll('#wizardContainer input, #wizardContainer select').forEach(function(el) {
+                if (el.type === 'number' || el.type === 'text') el.value = '';
+                if (el.tagName === 'SELECT') el.selectedIndex = 0;
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function shareResults() {
