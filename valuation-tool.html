@@ -1429,6 +1429,56 @@
                 flex-direction: column;
             }
         }
+
+        /* ===== Language Selector ===== */
+        .lang-selector {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+
+        .lang-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .lang-btn:hover {
+            background: rgba(212,168,83,0.1);
+            border-color: rgba(212,168,83,0.3);
+            color: rgba(255,255,255,0.8);
+        }
+
+        .lang-btn.active {
+            background: rgba(212,168,83,0.15);
+            border-color: rgba(212,168,83,0.4);
+            color: #D4A853;
+            font-weight: 600;
+        }
+
+        .lang-btn .flag {
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        @media (max-width: 480px) {
+            .lang-btn span:not(.flag) {
+                display: none;
+            }
+            .lang-btn {
+                padding: 5px 8px;
+            }
+        }
     </style>
 
     <!-- Google Ads - Replace YOUR_ID with actual Google Ads ID -->
@@ -1445,7 +1495,8 @@
           if (type === 'calculate') {
             gtag('event', 'conversion', {'send_to': 'AW-18029764921/CALC_CONVERSION'});
           } else if (type === 'unlock') {
-            gtag('event', 'conversion', {'send_to': 'AW-18029764921/PURCHASE_CONVERSION', 'value': 99.0, 'currency': 'BRL'});
+            var _cfg = (typeof regionConfig !== 'undefined' && typeof currentLang !== 'undefined') ? regionConfig[currentLang] : { priceValue: 99.0, currency: 'BRL' };
+            gtag('event', 'conversion', {'send_to': 'AW-18029764921/PURCHASE_CONVERSION', 'value': _cfg.priceValue, 'currency': _cfg.currency});
           }
         }
       }
@@ -1480,11 +1531,18 @@
 
         <!-- ===== COMPACT HEADER (always visible) ===== -->
         <div class="compact-header">
+            <div class="lang-selector" id="langSelector">
+                <button class="lang-btn active" onclick="setLanguage('pt')" data-lang="pt"><span class="flag">&#x1F1E7;&#x1F1F7;</span><span>PT</span></button>
+                <button class="lang-btn" onclick="setLanguage('en')" data-lang="en"><span class="flag">&#x1F1FA;&#x1F1F8;</span><span>EN</span></button>
+                <button class="lang-btn" onclick="setLanguage('es')" data-lang="es"><span class="flag">&#x1F1F2;&#x1F1FD;</span><span>ES</span></button>
+                <button class="lang-btn" onclick="setLanguage('fr')" data-lang="fr"><span class="flag">&#x1F1EB;&#x1F1F7;</span><span>FR</span></button>
+                <button class="lang-btn" onclick="setLanguage('hi')" data-lang="hi"><span class="flag">&#x1F1EE;&#x1F1F3;</span><span>HI</span></button>
+            </div>
             <div class="compact-header-top">
                 <span class="header-badge">VALUATION PRO</span>
             </div>
-            <h1>Quanto vale a sua empresa?</h1>
-            <div class="subtitle">Avalia&ccedil;&atilde;o baseada em m&uacute;ltiplos de M&amp;A do mercado brasileiro</div>
+            <h1 id="headerTitle">Quanto vale a sua empresa?</h1>
+            <div class="subtitle" id="headerSubtitle">Avalia&ccedil;&atilde;o baseada em m&uacute;ltiplos de M&amp;A do mercado brasileiro</div>
         </div>
 
         <!-- ===== WIZARD ===== -->
@@ -1761,52 +1819,79 @@
         <!-- ===== RESULTS ===== -->
         <div class="result-container" id="resultContainer">
 
-            <!-- Hero Result Card (FREE - always visible) -->
+            <!-- Hero Result Card -->
             <div class="main-result">
                 <div class="result-company-name" id="resultCompanyName"></div>
-                <div class="result-label-main">Valor Estimado da Empresa</div>
-                <div class="result-value-wrapper">
-                    <div class="shimmer-bg">
-                        <div class="shimmer-particle"></div>
-                        <div class="shimmer-particle"></div>
-                        <div class="shimmer-particle"></div>
-                        <div class="shimmer-particle"></div>
-                        <div class="shimmer-particle"></div>
-                        <div class="shimmer-particle"></div>
-                        <div class="shimmer-particle"></div>
-                        <div class="shimmer-particle"></div>
-                        <div class="shimmer-particle"></div>
-                        <div class="shimmer-particle"></div>
-                        <div class="shimmer-particle"></div>
-                        <div class="shimmer-particle"></div>
+
+                <!-- TEASER (visible before payment) -->
+                <div id="teaserResult">
+                    <div style="font-size:0.75rem; color:rgba(212,168,83,0.7); text-transform:uppercase; letter-spacing:2px; margin-bottom:12px;">Analise Concluida</div>
+                    <div id="teaserMessage" style="font-size:1.6rem; font-weight:700; color:#D4A853; line-height:1.3; margin-bottom:16px;"></div>
+                    <div id="teaserDetails" style="font-size:0.95rem; color:rgba(255,255,255,0.7); margin-bottom:20px; line-height:1.6;"></div>
+                    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom:20px;">
+                        <div id="teaserBadge1" style="background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.3); border-radius:20px; padding:6px 16px; font-size:0.8rem; color:#4ade80;"></div>
+                        <div id="teaserBadge2" style="background:rgba(212,168,83,0.1); border:1px solid rgba(212,168,83,0.3); border-radius:20px; padding:6px 16px; font-size:0.8rem; color:#D4A853;"></div>
                     </div>
-                    <div class="result-value-main" id="finalValue">-</div>
-                </div>
-                <div class="result-range-text">Faixa de valuation: <span id="valuationRange">-</span></div>
-                <div class="range-bar-container">
-                    <div class="range-bar-labels">
-                        <span id="rangeMinLabel">-</span>
-                        <span id="rangeMaxLabel">-</span>
-                    </div>
-                    <div class="range-bar">
-                        <div class="range-bar-fill"></div>
-                        <div class="range-bar-marker" id="rangeMarker"></div>
+                    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:16px; margin-bottom:16px;">
+                        <div style="font-size:0.8rem; color:rgba(255,255,255,0.4); margin-bottom:8px;">Valor Estimado da Empresa</div>
+                        <div style="font-size:2.2rem; font-weight:800; color:rgba(255,255,255,0.15); letter-spacing:4px; filter:blur(8px); user-select:none;">R$ ***.***,**</div>
+                        <div style="font-size:0.75rem; color:rgba(212,168,83,0.6); margin-top:8px;">&#128274; Desbloqueie para ver o valor exato</div>
                     </div>
                 </div>
+
+                <!-- FULL VALUE (hidden until payment) -->
+                <div id="fullValueResult" style="display:none;">
+                    <div class="result-label-main">Valor Estimado da Empresa</div>
+                    <div class="result-value-wrapper">
+                        <div class="shimmer-bg">
+                            <div class="shimmer-particle"></div>
+                            <div class="shimmer-particle"></div>
+                            <div class="shimmer-particle"></div>
+                            <div class="shimmer-particle"></div>
+                            <div class="shimmer-particle"></div>
+                            <div class="shimmer-particle"></div>
+                            <div class="shimmer-particle"></div>
+                            <div class="shimmer-particle"></div>
+                            <div class="shimmer-particle"></div>
+                            <div class="shimmer-particle"></div>
+                            <div class="shimmer-particle"></div>
+                            <div class="shimmer-particle"></div>
+                        </div>
+                        <div class="result-value-main" id="finalValue">-</div>
+                    </div>
+                    <div class="result-range-text">Faixa de valuation: <span id="valuationRange">-</span></div>
+                    <div class="range-bar-container">
+                        <div class="range-bar-labels">
+                            <span id="rangeMinLabel">-</span>
+                            <span id="rangeMaxLabel">-</span>
+                        </div>
+                        <div class="range-bar">
+                            <div class="range-bar-fill"></div>
+                            <div class="range-bar-marker" id="rangeMarker"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="result-date" id="resultDate"></div>
             </div>
 
-            <!-- CTA COMPRA - Logo apos o numero do valuation -->
+            <!-- CTA COMPRA - Logo apos o teaser -->
             <div class="cta-unlock-inline" id="ctaInline">
-                <div style="text-align:center; padding:24px 20px; background:linear-gradient(135deg, rgba(212,168,83,0.08), rgba(212,168,83,0.02)); border:1px solid rgba(212,168,83,0.25); border-radius:16px; margin-bottom:20px;">
-                    <div style="font-size:0.85rem; color:rgba(255,255,255,0.6); margin-bottom:10px;">Desbloqueie o relat&oacute;rio completo com 15 indicadores + <strong style="color:#D4A853;">B&Ocirc;NUS An&aacute;lise de MKT</strong></div>
-                    <button class="btn-pay" onclick="handlePayment()" style="margin:0 auto; display:block;">ACESSAR RELAT&Oacute;RIO COMPLETO &mdash; R$ 99,00</button>
-                    <div style="text-align:center; margin-top:8px; font-size:0.65rem; color:rgba(255,255,255,0.3);">Pix &middot; Cart&atilde;o &middot; Boleto &middot; Acesso imediato</div>
+                <div style="text-align:center; padding:28px 24px; background:linear-gradient(135deg, rgba(212,168,83,0.12), rgba(212,168,83,0.03)); border:1px solid rgba(212,168,83,0.35); border-radius:16px; margin-bottom:20px;">
+                    <div style="font-size:1.1rem; font-weight:700; color:#fff; margin-bottom:6px;">Descubra o valor exato da sua empresa</div>
+                    <div style="font-size:0.85rem; color:rgba(255,255,255,0.5); margin-bottom:16px;">Valuation completo + 15 indicadores + <strong style="color:#D4A853;">B&Ocirc;NUS Auditoria de MKT Digital</strong></div>
+                    <button class="btn-pay" onclick="handlePayment()" style="margin:0 auto; display:block; font-size:1rem; padding:16px 40px;">DESBLOQUEAR MEU VALUATION &mdash; R$ 99,00</button>
+                    <div style="text-align:center; margin-top:10px; font-size:0.7rem; color:rgba(255,255,255,0.35);">Pix &middot; Cart&atilde;o &middot; Boleto &middot; Acesso imediato</div>
+                    <div style="display:flex; justify-content:center; gap:20px; margin-top:14px; font-size:0.7rem; color:rgba(255,255,255,0.3);">
+                        <span>&#x1F512; Dados seguros</span>
+                        <span>&#x26A1; Acesso imediato</span>
+                        <span>&#x1F4C4; PDF profissional</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Free Action Buttons -->
-            <div class="free-actions">
+            <!-- Action Buttons (only after unlock) -->
+            <div class="free-actions" id="freeActions" style="display:none;">
                 <button type="button" class="btn-share" onclick="shareResults()">&#x1F4E4; Compartilhar Resultado</button>
                 <button type="button" class="btn-share" onclick="window.print()">&#x1F5A8; Imprimir</button>
             </div>
@@ -1975,7 +2060,7 @@
                                 <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
                                     <div id="mktScoreCircle" style="width:80px;height:80px;border-radius:50%;border:4px solid rgba(212,168,83,0.4);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#D4A853;flex-shrink:0;">-</div>
                                     <div>
-                                        <div style="font-size:1.1rem;font-weight:700;color:#fff;">Nota de Marketing</div>
+                                        <div id="mktScoreTitleEl" style="font-size:1.1rem;font-weight:700;color:#fff;">Nota de Marketing</div>
                                         <div id="mktScoreLabel" style="font-size:0.8rem;color:rgba(255,255,255,0.5);">Avaliacao como profissional de MKT</div>
                                     </div>
                                 </div>
@@ -2033,6 +2118,1159 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
+        // ===== I18N INFRASTRUCTURE =====
+        let currentLang = 'pt';
+
+        const regionConfig = {
+            pt: { currency: 'BRL', symbol: 'R$', locale: 'pt-BR', price: 'R$ 99,00', priceValue: 99.0, paymentLink: '', paymentMethods: 'Pix \u00b7 Cart\u00e3o \u00b7 Boleto', multiplesFactor: 1.0, decimalSep: ',', thousandSep: '.', sizeThresholds: [50000000, 10000000, 5000000, 1000000], illiquidityDiscount: 0.80 },
+            en: { currency: 'USD', symbol: '$', locale: 'en-US', price: '$19.99', priceValue: 19.99, paymentLink: '', paymentMethods: 'PayPal \u00b7 Credit Card', multiplesFactor: 1.6, decimalSep: '.', thousandSep: ',', sizeThresholds: [9000000, 1800000, 900000, 180000], illiquidityDiscount: 0.75 },
+            es: { currency: 'MXN', symbol: '$', locale: 'es-MX', price: '$349 MXN', priceValue: 349.0, paymentLink: '', paymentMethods: 'PayPal \u00b7 Tarjeta', multiplesFactor: 0.95, decimalSep: '.', thousandSep: ',', sizeThresholds: [175000000, 35000000, 17500000, 3500000], illiquidityDiscount: 0.80 },
+            fr: { currency: 'EUR', symbol: '\u20ac', locale: 'fr-FR', price: '17,99 \u20ac', priceValue: 17.99, paymentLink: '', paymentMethods: 'PayPal \u00b7 Carte bancaire', multiplesFactor: 1.3, decimalSep: ',', thousandSep: '\u00a0', sizeThresholds: [8300000, 1660000, 830000, 166000], illiquidityDiscount: 0.75 },
+            hi: { currency: 'INR', symbol: '\u20b9', locale: 'hi-IN', price: '\u20b91,499', priceValue: 1499.0, paymentLink: '', paymentMethods: 'PayPal \u00b7 Credit Card', multiplesFactor: 0.85, decimalSep: '.', thousandSep: ',', sizeThresholds: [770000000, 154000000, 77000000, 15400000], illiquidityDiscount: 0.82 }
+        };
+
+        const translations = {
+            pt: {
+                'header.title': 'Quanto vale a sua empresa?',
+                'header.subtitle': 'Avalia\u00e7\u00e3o baseada em m\u00faltiplos de M&A do mercado brasileiro',
+                'steps.1': 'Dados da Empresa', 'steps.2': 'Dados Financeiros', 'steps.3': 'Dados Operacionais', 'steps.4': 'Resultado',
+                'step1.title': 'Dados da Empresa', 'step1.subtitle': 'Informa\u00e7\u00f5es b\u00e1sicas sobre o seu neg\u00f3cio',
+                'step1.privacy': '\uD83D\uDD12 Seus dados s\u00e3o processados localmente. Nenhuma informa\u00e7\u00e3o \u00e9 enviada a servidores.',
+                'step2.title': 'Dados Financeiros', 'step2.subtitle': 'N\u00fameros financeiros fundamentais da sua empresa',
+                'step3.title': 'Dados Operacionais', 'step3.subtitle': 'M\u00e9tricas operacionais para uma an\u00e1lise mais precisa (opcionais)',
+                'form.companyName': 'Nome da Empresa (Opcional)', 'form.companyNamePlaceholder': 'Deixe em branco para manter privacidade',
+                'form.companyNameTip': 'O nome da sua empresa aparecera apenas no relatorio em PDF. Este campo e opcional.',
+                'form.mktChannel': 'Presen\u00e7a Digital (B\u00f4nus MKT)', 'form.mktChannelPlaceholder': '@seuinstagram, @seutiktok ou www.seusite.com.br',
+                'form.mktChannelTip': 'Insira seu Instagram, TikTok ou site para receber uma analise bonus de marketing digital com nota de 0 a 10.',
+                'form.sector': 'Setor de Atua\u00e7\u00e3o', 'form.sectorPlaceholder': 'Selecione o setor...',
+                'form.sectorTip': 'Escolha o setor que melhor descreve o seu negocio. Cada setor tem multiplos de mercado diferentes.',
+                'form.employees': 'N\u00famero de Funcion\u00e1rios', 'form.employeesPlaceholder': 'Ex: 25',
+                'form.employeesTip': 'Total de pessoas que trabalham na empresa, incluindo socios, funcionarios CLT, estagiarios.',
+                'form.marketPosition': 'Posi\u00e7\u00e3o no Mercado',
+                'form.marketPositionTip': 'Como sua empresa se compara aos concorrentes no seu segmento.',
+                'form.marketPositionPlaceholder': 'Selecione...',
+                'form.mp.lider': 'L\u00edder de Mercado', 'form.mp.forte': 'Posi\u00e7\u00e3o Forte', 'form.mp.media': 'Posi\u00e7\u00e3o M\u00e9dia', 'form.mp.emergente': 'Empresa Emergente',
+                'form.growth': 'Crescimento da Receita (\u00faltimos 3 anos)',
+                'form.growthTip': 'Compare a receita de hoje com a de 3 anos atras.',
+                'form.growthPlaceholder': 'Selecione...',
+                'form.gr.alto': 'Alto (>30% ao ano)', 'form.gr.medio': 'M\u00e9dio (10-30% ao ano)', 'form.gr.baixo': 'Baixo (0-10% ao ano)', 'form.gr.negativo': 'Negativo (<0% ao ano)',
+                'form.revenue': 'Receita Anual', 'form.revenuePlaceholder': 'Ex: 1.000.000,00',
+                'form.revenueTip': 'Todo o dinheiro que a empresa faturou no ultimo ano.',
+                'form.ebitda': 'EBITDA Anual', 'form.ebitdaPlaceholder': 'Ex: 200.000,00',
+                'form.ebitdaTip': 'O lucro da empresa antes dos impostos, juros e depreciacao.',
+                'form.netIncome': 'Lucro L\u00edquido Anual', 'form.netIncomePlaceholder': 'Ex: 150.000,00',
+                'form.netIncomeTip': 'O dinheiro que realmente sobra para os donos depois de pagar tudo.',
+                'form.assets': 'Total de Ativos', 'form.assetsPlaceholder': 'Ex: 500.000,00',
+                'form.assetsTip': 'Tudo que a empresa possui e que tem valor: dinheiro, equipamentos, imoveis, estoque.',
+                'form.debt': 'Total de D\u00edvidas', 'form.debtPlaceholder': 'Ex: 100.000,00',
+                'form.debtTip': 'Todo dinheiro que a empresa deve: emprestimos, financiamentos, dividas.',
+                'form.workingCapital': 'Capital de Giro', 'form.workingCapitalPlaceholder': 'Ex: 50.000,00',
+                'form.workingCapitalTip': 'O dinheiro disponivel para funcionar no dia a dia.',
+                'form.averageTicket': 'Ticket M\u00e9dio', 'form.averageTicketPlaceholder': 'Ex: 150,00',
+                'form.averageTicketTip': 'Quanto cada cliente gasta em media por compra.',
+                'form.customers': 'Clientes Ativos', 'form.customersPlaceholder': 'Ex: 500',
+                'form.customersTip': 'Quantos clientes diferentes compraram no ultimo ano.',
+                'form.cashCycle': 'Ciclo de Caixa (dias)', 'form.cashCyclePlaceholder': 'Ex: 30',
+                'form.cashCycleTip': 'Quantos dias para transformar investimentos em dinheiro.',
+                'form.inventory': 'Estoque Atual', 'form.inventoryPlaceholder': 'Ex: 80.000,00',
+                'form.inventoryTip': 'O valor total de produtos no estoque esperando para serem vendidos.',
+                'nav.continue': 'CONTINUAR \u2192', 'nav.back': '\u2190 VOLTAR', 'nav.calculate': 'CALCULAR VALUATION \u2192',
+                'loading.processing': 'Processando an\u00e1lise de valuation...', 'loading.applying': 'Aplicando m\u00faltiplos setoriais e fatores de ajuste',
+                'results.estimatedValue': 'Valor Estimado da Empresa', 'results.rangeText': 'Faixa de valuation:',
+                'results.datePrefix': 'Avaliacao realizada em',
+                'results.share': '\uD83D\uDCE4 Compartilhar Resultado', 'results.print': '\uD83D\uDDA8 Imprimir',
+                'sections.methods': 'M\u00e9todos de Avalia\u00e7\u00e3o', 'sections.financialHealth': 'Sa\u00fade Financeira',
+                'sections.patrimonial': 'Indicadores Patrimoniais', 'sections.operational': 'Performance Operacional',
+                'sections.efficiency': 'Efici\u00eancia Operacional',
+                'cards.revenueVal': 'Valuation por Receita', 'cards.ebitdaVal': 'Valuation por EBITDA', 'cards.profitVal': 'Valuation por Lucro',
+                'cards.revenueMultiple': 'M\u00faltiplo sobre faturamento', 'cards.ebitdaMultiple': 'M\u00faltiplo sobre EBITDA', 'cards.profitMultiple': 'M\u00faltiplo sobre lucro l\u00edquido',
+                'cards.ebitdaMargin': 'Margem EBITDA', 'cards.ebitdaOverRevenue': 'EBITDA / Receita',
+                'cards.netMargin': 'Margem L\u00edquida', 'cards.profitOverRevenue': 'Lucro / Receita',
+                'cards.roe': 'ROE', 'cards.returnOnEquity': 'Retorno sobre patrim\u00f4nio',
+                'cards.netWorth': 'Patrim\u00f4nio L\u00edquido', 'cards.assetsMinusLiabilities': 'Ativos menos passivos',
+                'cards.enterpriseValue': 'Enterprise Value', 'cards.totalOpValue': 'Valor total da opera\u00e7\u00e3o',
+                'cards.debtRatio': 'Endividamento', 'cards.debtOverAssets': 'D\u00edvida / Ativos Totais',
+                'cards.revenuePerEmployee': 'Receita / Funcion\u00e1rio', 'cards.teamProductivity': 'Produtividade da equipe',
+                'cards.ltv': 'LTV por Cliente', 'cards.clientValue': 'Valor por cliente',
+                'cards.adjustmentFactor': 'Fator de Ajuste', 'cards.growthPosition': 'Crescimento + Posi\u00e7\u00e3o',
+                'cards.inventoryTurnover': 'Giro de Estoque', 'cards.timesPerYear': 'Vezes por ano',
+                'cards.workingCapitalLabel': 'Capital de Giro', 'cards.opLiquidity': 'Liquidez operacional',
+                'cards.cashCycleLabel': 'Ciclo de Caixa', 'cards.daysToConvert': 'Dias para convers\u00e3o',
+                'efficiency.low': 'Baixo', 'efficiency.high': 'Alto', 'efficiency.fast': 'R\u00e1pido', 'efficiency.slow': 'Lento',
+                'perf.above': 'Acima da media', 'perf.average': 'Na media', 'perf.below': 'Abaixo da media',
+                'paywall.title': 'Relat\u00f3rio Completo de Valuation',
+                'paywall.subtitle': 'An\u00e1lise detalhada com 15 indicadores, diagn\u00f3stico e PDF',
+                'paywall.f1': '15 m\u00e9tricas de valuation usadas por fundos de investimento',
+                'paywall.f2': 'Benchmarks exclusivos do seu setor (dados reais de M&A)',
+                'paywall.f3': 'Relat\u00f3rio PDF profissional \u2014 pronto para investidores',
+                'paywall.f4': 'Acesso ilimitado por 30 dias \u2014 recalcule sempre que precisar',
+                'paywall.f5': 'B\u00d4NUS: Auditoria de Marketing Digital com nota 0-10 e plano de a\u00e7\u00e3o',
+                'paywall.button': 'ACESSAR RELAT\u00d3RIO',
+                'paywall.methodology': 'Metodologia validada por +2.000 empresas',
+                'cta.text': 'Desbloqueie o relat\u00f3rio completo com 15 indicadores +',
+                'cta.bonus': 'B\u00d4NUS An\u00e1lise de MKT',
+                'cta.button': 'ACESSAR RELAT\u00d3RIO COMPLETO',
+                'cta.methods': 'Pix \u00b7 Cart\u00e3o \u00b7 Boleto \u00b7 Acesso imediato',
+                'diagnostic.title': '\uD83D\uDD0D Diagn\u00f3stico Geral',
+                'diagnostic.generatePdf': '\uD83D\uDCC4 Gerar Relat\u00f3rio PDF', 'diagnostic.share': '\uD83D\uDCE4 Compartilhar',
+                'footer.line1': 'Valuation Pro \u00b7 Metodologia baseada em transa\u00e7\u00f5es reais de M&A \u00b7 \u00a9 2026',
+                'footer.line2': 'M\u00faltiplos setoriais de fontes p\u00fablicas (PwC, KPMG, EY) \u00b7 Estimativa indicativa',
+                'toast.unlocked': 'Relatorio desbloqueado com sucesso!',
+                'share.text': 'Acabei de calcular o valor da minha empresa!\n\nValor estimado: {value}\n\nUse a calculadora Valuation Pro\nMetodologia profissional com multiplos reais de M&A\n\n#valuation #empreendedorismo',
+                'share.title': 'Resultado do Valuation',
+                'share.copied': 'Resultado copiado para clipboard! Cole nas suas redes sociais.',
+                'pdf.title': 'QUANTO VALE A MINHA EMPRESA?',
+                'pdf.date': 'Data:', 'pdf.company': 'Empresa:', 'pdf.sector': 'Setor:',
+                'pdf.methodology': 'METODOLOGIA:', 'pdf.results': 'ANALISE COMPLETA:', 'pdf.estimated': 'VALOR ESTIMADO:',
+                'pdf.range': 'Faixa:', 'pdf.diagnostic': 'DIAGNOSTICO GERAL:',
+                'pdf.methLine1': 'Multiplos baseados em transacoes reais de M&A',
+                'pdf.methLine2': 'Desconto de iliquidez aplicado (empresa privada)',
+                'pdf.methLine3': 'Ajuste por porte: fator {v}x aplicado',
+                'pdf.methLine4': 'Ajuste por rentabilidade: fator {v}x',
+                'pdf.methLine5': 'Ajuste por endividamento, crescimento e posicao de mercado',
+                'pdf.methLine6': 'Fontes: PwC, KPMG, EY - transacoes M&A de PMEs privadas',
+                'pdf.footer1': 'Valuation Pro - Metodologia baseada em transacoes reais de M&A',
+                'pdf.footer2': 'Multiplos setoriais de fontes publicas (PwC, KPMG, EY)',
+                'diag.ebitdaAbove': 'Margem EBITDA de {v}% esta acima da mediana do setor de {s} ({b}%)',
+                'diag.ebitdaAvg': 'Margem EBITDA de {v}% esta na media do setor de {s} ({b}%)',
+                'diag.ebitdaBelow': 'Margem EBITDA de {v}% esta abaixo da mediana do setor de {s} ({b}%) - otimize custos operacionais',
+                'diag.debtLow': 'Endividamento de {v}% esta abaixo da media do setor ({b}%) - estrutura saudavel',
+                'diag.debtMed': 'Endividamento de {v}% esta proximo da media do setor ({b}%) - monitore a alavancagem',
+                'diag.debtHigh': 'Endividamento de {v}% esta acima da media do setor ({b}%) - risco financeiro significativo',
+                'diag.roeHigh': 'Retorno sobre patrimonio atrativo para investidores',
+                'diag.roeMed': 'ROE na media - busque maior eficiencia do capital',
+                'diag.roeLow': 'ROE baixo - capital dos socios rende pouco',
+                'diag.growthPos': 'Empresa em crescimento - multiplos de mercado favoraveis',
+                'diag.growthNeg': 'Receita em queda - revise o modelo de negocios',
+                'diag.marginHigh': 'Margem liquida acima do esperado - eficiencia excelente',
+                'diag.invHigh': 'Giro de estoque eficiente - boa gestao de inventario',
+                'diag.invLow': 'Giro de estoque baixo - capital parado em inventario',
+                'diag.sizeAdj': 'Ajuste de porte aplicado: -{v}% (empresas menores tem multiplos mais baixos no mercado de M&A)',
+                'diag.illiquidity': 'Desconto de iliquidez de {v}% aplicado - empresas privadas valem menos que equivalentes listadas em bolsa',
+                'mkt.title': '\uD83D\uDCF1 An\u00e1lise de Marketing Digital (B\u00f4nus)',
+                'mkt.scoreTitle': 'Nota de Marketing', 'mkt.scoreLabel': 'Avaliacao como profissional de MKT',
+                'mkt.diagTitle': 'Diagnostico de Marketing',
+                'mkt.strongPoint': 'Ponto forte:', 'mkt.opportunity': 'Maior oportunidade:',
+                'mkt.recommendation': 'Recomendacao principal:',
+                'mkt.benchmarkNote': 'Analise baseada em benchmarks de marketing digital para {s} ({y}).',
+                'mkt.labels': ['Critico','Muito fraco','Fraco','Abaixo da media','Regular','Na media','Acima da media','Bom','Muito bom','Excelente','Referencia'],
+                'mkt.ig': [
+                    { name: 'Presenca na plataforma', tip: 'Ter um perfil no Instagram e essencial para visibilidade' },
+                    { name: 'Bio profissional', tip: 'Otimize a bio com CTA, link e proposta de valor clara' },
+                    { name: 'Consistencia de posts', tip: 'Publique no minimo 3-4x por semana com conteudo de valor' },
+                    { name: 'Estrategia de Stories', tip: 'Use stories diariamente com enquetes, bastidores e CTA' },
+                    { name: 'Reels e video curto', tip: 'Reels tem 2x mais alcance que posts estaticos em 2026' },
+                    { name: 'Funil de vendas', tip: 'Crie um funil: conteudo gratuito > lead magnet > oferta' },
+                    { name: 'Prova social', tip: 'Compartilhe depoimentos, resultados de clientes e cases' },
+                    { name: 'Link na bio otimizado', tip: 'Use Linktree ou similar com links rastreados (UTM)' }
+                ],
+                'mkt.tt': [
+                    { name: 'Presenca na plataforma', tip: 'TikTok e o canal de maior crescimento organico em 2026' },
+                    { name: 'Perfil otimizado', tip: 'Bio clara, link e CTA no perfil' },
+                    { name: 'Frequencia de publicacao', tip: 'Publique 1-2 videos por dia para maximizar alcance' },
+                    { name: 'Formato de conteudo', tip: 'Videos educativos e de bastidores performam melhor para B2B' },
+                    { name: 'Uso de tendencias', tip: 'Adapte trends virais ao seu nicho para ganhar visibilidade' },
+                    { name: 'Engajamento', tip: 'Responda todos os comentarios e interaja com seguidores' },
+                    { name: 'Conversao p/ vendas', tip: 'Inclua CTA nos videos e direcione para link na bio' },
+                    { name: 'Cross-posting', tip: 'Reposte seus melhores TikToks no Reels e Shorts' }
+                ],
+                'mkt.web': [
+                    { name: 'Presenca online', tip: 'Ter um site proprio transmite profissionalismo e credibilidade' },
+                    { name: 'SSL / Seguranca', tip: 'Sites sem HTTPS perdem ranking no Google e confianca do usuario' },
+                    { name: 'SEO basico', tip: 'Otimize titulos, meta descriptions e headings para Google' },
+                    { name: 'Velocidade de carregamento', tip: 'Sites que carregam em +3s perdem 53% dos visitantes mobile' },
+                    { name: 'Mobile responsivo', tip: '70% do trafego brasileiro vem de celular - seu site precisa ser mobile-first' },
+                    { name: 'CTA e conversao', tip: 'Tenha CTAs claros em cada pagina: botao WhatsApp, formulario, compra' },
+                    { name: 'Google Meu Negocio', tip: 'Cadastre sua empresa no Google Maps para aparecer em buscas locais' },
+                    { name: 'Analytics instalado', tip: 'Sem dados, voce nao sabe o que funciona. Instale o GA4' }
+                ],
+                'sector.tecnologia': 'Tecnologia', 'sector.saude': 'Sa\u00fade', 'sector.educacao': 'Educa\u00e7\u00e3o',
+                'sector.alimentacao': 'Alimenta\u00e7\u00e3o & Bebidas', 'sector.varejo': 'Varejo', 'sector.servicos': 'Servi\u00e7os',
+                'sector.construcao': 'Constru\u00e7\u00e3o', 'sector.industria': 'Ind\u00fastria', 'sector.agronegocio': 'Agroneg\u00f3cio',
+                'sector.energia': 'Energia', 'sector.logistica': 'Log\u00edstica', 'sector.financeiro': 'Financeiro',
+                'sector.franquias': 'Franquias', 'sector.beleza': 'Beleza & Est\u00e9tica',
+                'sector.ecommerce': 'E-commerce / Marketplace', 'sector.imobiliario': 'Imobili\u00e1rio', 'sector.consultoria': 'Consultoria',
+                'common.anonymous': 'Empresa Anonima', 'common.na': 'N/A', 'common.days': 'dias'
+            },
+            en: {
+                'header.title': 'What is your company worth?',
+                'header.subtitle': 'Valuation based on real M&A transaction multiples',
+                'steps.1': 'Company Info', 'steps.2': 'Financials', 'steps.3': 'Operations', 'steps.4': 'Result',
+                'step1.title': 'Company Information', 'step1.subtitle': 'Basic information about your business',
+                'step1.privacy': '\uD83D\uDD12 Your data is processed locally. No information is sent to any server.',
+                'step2.title': 'Financial Data', 'step2.subtitle': 'Key financial numbers of your company',
+                'step3.title': 'Operational Data', 'step3.subtitle': 'Operational metrics for a more precise analysis (optional)',
+                'form.companyName': 'Company Name (Optional)', 'form.companyNamePlaceholder': 'Leave blank for privacy',
+                'form.companyNameTip': 'Your company name will only appear in the PDF report. This field is optional.',
+                'form.mktChannel': 'Digital Presence (MKT Bonus)', 'form.mktChannelPlaceholder': '@yourinstagram, @yourtiktok or www.yoursite.com',
+                'form.mktChannelTip': 'Enter your Instagram, TikTok or website to get a bonus digital marketing analysis scored 0-10.',
+                'form.sector': 'Industry Sector', 'form.sectorPlaceholder': 'Select sector...',
+                'form.sectorTip': 'Choose the sector that best describes your business. Each sector has different market multiples.',
+                'form.employees': 'Number of Employees', 'form.employeesPlaceholder': 'e.g. 25',
+                'form.employeesTip': 'Total people working at the company, including partners, full-time employees, interns.',
+                'form.marketPosition': 'Market Position',
+                'form.marketPositionTip': 'How your company compares to competitors in your segment.',
+                'form.marketPositionPlaceholder': 'Select...',
+                'form.mp.lider': 'Market Leader', 'form.mp.forte': 'Strong Position', 'form.mp.media': 'Average Position', 'form.mp.emergente': 'Emerging Company',
+                'form.growth': 'Revenue Growth (last 3 years)',
+                'form.growthTip': 'Compare current revenue to 3 years ago.',
+                'form.growthPlaceholder': 'Select...',
+                'form.gr.alto': 'High (>30%/year)', 'form.gr.medio': 'Medium (10-30%/year)', 'form.gr.baixo': 'Low (0-10%/year)', 'form.gr.negativo': 'Negative (<0%/year)',
+                'form.revenue': 'Annual Revenue', 'form.revenuePlaceholder': 'e.g. 1,000,000.00',
+                'form.revenueTip': 'Total money the company earned last year.',
+                'form.ebitda': 'Annual EBITDA', 'form.ebitdaPlaceholder': 'e.g. 200,000.00',
+                'form.ebitdaTip': 'Earnings before interest, taxes, depreciation and amortization.',
+                'form.netIncome': 'Annual Net Income', 'form.netIncomePlaceholder': 'e.g. 150,000.00',
+                'form.netIncomeTip': 'The money that actually remains for owners after paying everything.',
+                'form.assets': 'Total Assets', 'form.assetsPlaceholder': 'e.g. 500,000.00',
+                'form.assetsTip': 'Everything the company owns that has value: cash, equipment, property, inventory.',
+                'form.debt': 'Total Debt', 'form.debtPlaceholder': 'e.g. 100,000.00',
+                'form.debtTip': 'All money the company owes: loans, financing, payables.',
+                'form.workingCapital': 'Working Capital', 'form.workingCapitalPlaceholder': 'e.g. 50,000.00',
+                'form.workingCapitalTip': 'Cash available for day-to-day operations.',
+                'form.averageTicket': 'Average Ticket', 'form.averageTicketPlaceholder': 'e.g. 150.00',
+                'form.averageTicketTip': 'How much each customer spends on average per purchase.',
+                'form.customers': 'Active Customers', 'form.customersPlaceholder': 'e.g. 500',
+                'form.customersTip': 'How many different customers bought in the last year.',
+                'form.cashCycle': 'Cash Cycle (days)', 'form.cashCyclePlaceholder': 'e.g. 30',
+                'form.cashCycleTip': 'How many days to convert investments into cash.',
+                'form.inventory': 'Current Inventory', 'form.inventoryPlaceholder': 'e.g. 80,000.00',
+                'form.inventoryTip': 'Total value of products in stock waiting to be sold.',
+                'nav.continue': 'CONTINUE \u2192', 'nav.back': '\u2190 BACK', 'nav.calculate': 'CALCULATE VALUATION \u2192',
+                'loading.processing': 'Processing valuation analysis...', 'loading.applying': 'Applying sector multiples and adjustment factors',
+                'results.estimatedValue': 'Estimated Company Value', 'results.rangeText': 'Valuation range:',
+                'results.datePrefix': 'Valuation performed on',
+                'results.share': '\uD83D\uDCE4 Share Result', 'results.print': '\uD83D\uDDA8 Print',
+                'sections.methods': 'Valuation Methods', 'sections.financialHealth': 'Financial Health',
+                'sections.patrimonial': 'Balance Sheet Indicators', 'sections.operational': 'Operational Performance',
+                'sections.efficiency': 'Operational Efficiency',
+                'cards.revenueVal': 'Revenue Valuation', 'cards.ebitdaVal': 'EBITDA Valuation', 'cards.profitVal': 'Profit Valuation',
+                'cards.revenueMultiple': 'Revenue multiple', 'cards.ebitdaMultiple': 'EBITDA multiple', 'cards.profitMultiple': 'Net income multiple',
+                'cards.ebitdaMargin': 'EBITDA Margin', 'cards.ebitdaOverRevenue': 'EBITDA / Revenue',
+                'cards.netMargin': 'Net Margin', 'cards.profitOverRevenue': 'Profit / Revenue',
+                'cards.roe': 'ROE', 'cards.returnOnEquity': 'Return on equity',
+                'cards.netWorth': 'Net Worth', 'cards.assetsMinusLiabilities': 'Assets minus liabilities',
+                'cards.enterpriseValue': 'Enterprise Value', 'cards.totalOpValue': 'Total operating value',
+                'cards.debtRatio': 'Debt Ratio', 'cards.debtOverAssets': 'Debt / Total Assets',
+                'cards.revenuePerEmployee': 'Revenue / Employee', 'cards.teamProductivity': 'Team productivity',
+                'cards.ltv': 'Customer LTV', 'cards.clientValue': 'Value per customer',
+                'cards.adjustmentFactor': 'Adjustment Factor', 'cards.growthPosition': 'Growth + Position',
+                'cards.inventoryTurnover': 'Inventory Turnover', 'cards.timesPerYear': 'Times per year',
+                'cards.workingCapitalLabel': 'Working Capital', 'cards.opLiquidity': 'Operating liquidity',
+                'cards.cashCycleLabel': 'Cash Cycle', 'cards.daysToConvert': 'Days to conversion',
+                'efficiency.low': 'Low', 'efficiency.high': 'High', 'efficiency.fast': 'Fast', 'efficiency.slow': 'Slow',
+                'perf.above': 'Above average', 'perf.average': 'Average', 'perf.below': 'Below average',
+                'paywall.title': 'Full Valuation Report',
+                'paywall.subtitle': 'Detailed analysis with 15 indicators, diagnostics and PDF',
+                'paywall.f1': '15 valuation metrics used by investment funds',
+                'paywall.f2': 'Exclusive benchmarks for your sector (real M&A data)',
+                'paywall.f3': 'Professional PDF report \u2014 investor-ready',
+                'paywall.f4': 'Unlimited access for 30 days \u2014 recalculate anytime',
+                'paywall.f5': 'BONUS: Digital Marketing Audit scored 0-10 with action plan',
+                'paywall.button': 'ACCESS FULL REPORT',
+                'paywall.methodology': 'Methodology validated by 2,000+ companies',
+                'cta.text': 'Unlock the full report with 15 indicators +',
+                'cta.bonus': 'BONUS MKT Analysis',
+                'cta.button': 'ACCESS FULL REPORT',
+                'cta.methods': 'PayPal \u00b7 Credit Card \u00b7 Instant access',
+                'diagnostic.title': '\uD83D\uDD0D General Diagnostic',
+                'diagnostic.generatePdf': '\uD83D\uDCC4 Generate PDF Report', 'diagnostic.share': '\uD83D\uDCE4 Share',
+                'footer.line1': 'Valuation Pro \u00b7 Methodology based on real M&A transactions \u00b7 \u00a9 2026',
+                'footer.line2': 'Sector multiples from public sources (PwC, KPMG, EY) \u00b7 Indicative estimate',
+                'toast.unlocked': 'Report unlocked successfully!',
+                'share.text': 'I just calculated my company\'s value!\n\nEstimated value: {value}\n\nUse the Valuation Pro calculator\nProfessional methodology with real M&A multiples\n\n#valuation #business #startup',
+                'share.title': 'Valuation Result',
+                'share.copied': 'Result copied to clipboard! Paste it on your social media.',
+                'pdf.title': 'WHAT IS MY COMPANY WORTH?',
+                'pdf.date': 'Date:', 'pdf.company': 'Company:', 'pdf.sector': 'Sector:',
+                'pdf.methodology': 'METHODOLOGY:', 'pdf.results': 'FULL ANALYSIS:', 'pdf.estimated': 'ESTIMATED VALUE:',
+                'pdf.range': 'Range:', 'pdf.diagnostic': 'GENERAL DIAGNOSTIC:',
+                'pdf.methLine1': 'Multiples based on real M&A transactions',
+                'pdf.methLine2': 'Illiquidity discount applied (private company)',
+                'pdf.methLine3': 'Size adjustment: factor {v}x applied',
+                'pdf.methLine4': 'Profitability adjustment: factor {v}x',
+                'pdf.methLine5': 'Adjustments for debt, growth and market position',
+                'pdf.methLine6': 'Sources: PwC, KPMG, EY - private SME M&A transactions',
+                'pdf.footer1': 'Valuation Pro - Methodology based on real M&A transactions',
+                'pdf.footer2': 'Sector multiples from public sources (PwC, KPMG, EY)',
+                'diag.ebitdaAbove': 'EBITDA margin of {v}% is above the {s} sector median ({b}%)',
+                'diag.ebitdaAvg': 'EBITDA margin of {v}% is in line with the {s} sector median ({b}%)',
+                'diag.ebitdaBelow': 'EBITDA margin of {v}% is below the {s} sector median ({b}%) - optimize operating costs',
+                'diag.debtLow': 'Debt ratio of {v}% is below the sector average ({b}%) - healthy structure',
+                'diag.debtMed': 'Debt ratio of {v}% is near the sector average ({b}%) - monitor leverage',
+                'diag.debtHigh': 'Debt ratio of {v}% is above the sector average ({b}%) - significant financial risk',
+                'diag.roeHigh': 'Attractive return on equity for investors',
+                'diag.roeMed': 'Average ROE - seek greater capital efficiency',
+                'diag.roeLow': 'Low ROE - shareholder capital generating poor returns',
+                'diag.growthPos': 'Growing company - favorable market multiples',
+                'diag.growthNeg': 'Declining revenue - review business model',
+                'diag.marginHigh': 'Net margin above expectations - excellent efficiency',
+                'diag.invHigh': 'Efficient inventory turnover - good inventory management',
+                'diag.invLow': 'Low inventory turnover - capital stuck in inventory',
+                'diag.sizeAdj': 'Size adjustment applied: -{v}% (smaller companies have lower M&A multiples)',
+                'diag.illiquidity': 'Illiquidity discount of {v}% applied - private companies are worth less than publicly listed equivalents',
+                'mkt.title': '\uD83D\uDCF1 Digital Marketing Analysis (Bonus)',
+                'mkt.scoreTitle': 'Marketing Score', 'mkt.scoreLabel': 'Professional MKT assessment',
+                'mkt.diagTitle': 'Marketing Diagnostic',
+                'mkt.strongPoint': 'Strength:', 'mkt.opportunity': 'Biggest opportunity:',
+                'mkt.recommendation': 'Key recommendation:',
+                'mkt.benchmarkNote': 'Analysis based on digital marketing benchmarks for {s} ({y}).',
+                'mkt.labels': ['Critical','Very weak','Weak','Below average','Fair','Average','Above average','Good','Very good','Excellent','Reference'],
+                'mkt.ig': [
+                    { name: 'Platform presence', tip: 'Having an Instagram profile is essential for visibility' },
+                    { name: 'Professional bio', tip: 'Optimize your bio with a CTA, link and clear value proposition' },
+                    { name: 'Posting consistency', tip: 'Post at least 3-4x per week with valuable content' },
+                    { name: 'Stories strategy', tip: 'Use stories daily with polls, behind-the-scenes and CTAs' },
+                    { name: 'Reels & short video', tip: 'Reels get 2x more reach than static posts in 2026' },
+                    { name: 'Sales funnel', tip: 'Create a funnel: free content > lead magnet > offer' },
+                    { name: 'Social proof', tip: 'Share testimonials, client results and case studies' },
+                    { name: 'Optimized link in bio', tip: 'Use Linktree or similar with tracked links (UTM)' }
+                ],
+                'mkt.tt': [
+                    { name: 'Platform presence', tip: 'TikTok is the fastest growing organic channel in 2026' },
+                    { name: 'Optimized profile', tip: 'Clear bio, link and CTA on profile' },
+                    { name: 'Posting frequency', tip: 'Post 1-2 videos per day to maximize reach' },
+                    { name: 'Content format', tip: 'Educational and behind-the-scenes videos perform best for B2B' },
+                    { name: 'Trend usage', tip: 'Adapt viral trends to your niche for visibility' },
+                    { name: 'Engagement', tip: 'Reply to all comments and interact with followers' },
+                    { name: 'Sales conversion', tip: 'Include CTAs in videos and drive to link in bio' },
+                    { name: 'Cross-posting', tip: 'Repost your best TikToks to Reels and Shorts' }
+                ],
+                'mkt.web': [
+                    { name: 'Online presence', tip: 'Having your own website conveys professionalism and credibility' },
+                    { name: 'SSL / Security', tip: 'Sites without HTTPS lose Google ranking and user trust' },
+                    { name: 'Basic SEO', tip: 'Optimize titles, meta descriptions and headings for Google' },
+                    { name: 'Load speed', tip: 'Sites that take 3s+ to load lose 53% of mobile visitors' },
+                    { name: 'Mobile responsive', tip: '70%+ of traffic comes from mobile - your site must be mobile-first' },
+                    { name: 'CTA & conversion', tip: 'Have clear CTAs on every page: WhatsApp button, form, buy' },
+                    { name: 'Google My Business', tip: 'Register on Google Maps to appear in local searches' },
+                    { name: 'Analytics installed', tip: 'Without data you don\'t know what works. Install GA4' }
+                ],
+                'sector.tecnologia': 'Technology', 'sector.saude': 'Healthcare', 'sector.educacao': 'Education',
+                'sector.alimentacao': 'Food & Beverage', 'sector.varejo': 'Retail', 'sector.servicos': 'Services',
+                'sector.construcao': 'Construction', 'sector.industria': 'Manufacturing', 'sector.agronegocio': 'Agribusiness',
+                'sector.energia': 'Energy', 'sector.logistica': 'Logistics', 'sector.financeiro': 'Financial Services',
+                'sector.franquias': 'Franchises', 'sector.beleza': 'Beauty & Wellness',
+                'sector.ecommerce': 'E-commerce / Marketplace', 'sector.imobiliario': 'Real Estate', 'sector.consultoria': 'Consulting',
+                'common.anonymous': 'Anonymous Company', 'common.na': 'N/A', 'common.days': 'days'
+            },
+            es: {
+                'header.title': '\u00bfCu\u00e1nto vale tu empresa?',
+                'header.subtitle': 'Valoraci\u00f3n basada en m\u00faltiplos reales de M&A',
+                'steps.1': 'Datos Empresa', 'steps.2': 'Datos Financieros', 'steps.3': 'Datos Operativos', 'steps.4': 'Resultado',
+                'step1.title': 'Datos de la Empresa', 'step1.subtitle': 'Informaci\u00f3n b\u00e1sica sobre tu negocio',
+                'step1.privacy': '\uD83D\uDD12 Tus datos se procesan localmente. Ninguna informaci\u00f3n se env\u00eda a servidores.',
+                'step2.title': 'Datos Financieros', 'step2.subtitle': 'N\u00fameros financieros fundamentales de tu empresa',
+                'step3.title': 'Datos Operativos', 'step3.subtitle': 'M\u00e9tricas operativas para un an\u00e1lisis m\u00e1s preciso (opcionales)',
+                'form.companyName': 'Nombre de la Empresa (Opcional)', 'form.companyNamePlaceholder': 'Deja en blanco para mantener privacidad',
+                'form.companyNameTip': 'El nombre de tu empresa solo aparecera en el reporte PDF. Este campo es opcional.',
+                'form.mktChannel': 'Presencia Digital (Bonus MKT)', 'form.mktChannelPlaceholder': '@tuinstagram, @tutiktok o www.tusitio.com',
+                'form.mktChannelTip': 'Ingresa tu Instagram, TikTok o sitio web para un analisis bonus de marketing digital.',
+                'form.sector': 'Sector', 'form.sectorPlaceholder': 'Selecciona el sector...',
+                'form.sectorTip': 'Elige el sector que mejor describe tu negocio.',
+                'form.employees': 'N\u00famero de Empleados', 'form.employeesPlaceholder': 'Ej: 25',
+                'form.employeesTip': 'Total de personas que trabajan en la empresa.',
+                'form.marketPosition': 'Posici\u00f3n en el Mercado',
+                'form.marketPositionTip': 'C\u00f3mo se compara tu empresa con la competencia.',
+                'form.marketPositionPlaceholder': 'Selecciona...',
+                'form.mp.lider': 'L\u00edder de Mercado', 'form.mp.forte': 'Posici\u00f3n Fuerte', 'form.mp.media': 'Posici\u00f3n Media', 'form.mp.emergente': 'Empresa Emergente',
+                'form.growth': 'Crecimiento de Ingresos (\u00faltimos 3 a\u00f1os)',
+                'form.growthTip': 'Compara los ingresos actuales con los de hace 3 a\u00f1os.',
+                'form.growthPlaceholder': 'Selecciona...',
+                'form.gr.alto': 'Alto (>30%/a\u00f1o)', 'form.gr.medio': 'Medio (10-30%/a\u00f1o)', 'form.gr.baixo': 'Bajo (0-10%/a\u00f1o)', 'form.gr.negativo': 'Negativo (<0%/a\u00f1o)',
+                'form.revenue': 'Ingresos Anuales', 'form.revenuePlaceholder': 'Ej: 1,000,000.00',
+                'form.revenueTip': 'Todo el dinero que factur\u00f3 la empresa el \u00faltimo a\u00f1o.',
+                'form.ebitda': 'EBITDA Anual', 'form.ebitdaPlaceholder': 'Ej: 200,000.00',
+                'form.ebitdaTip': 'Ganancias antes de intereses, impuestos, depreciaci\u00f3n y amortizaci\u00f3n.',
+                'form.netIncome': 'Utilidad Neta Anual', 'form.netIncomePlaceholder': 'Ej: 150,000.00',
+                'form.netIncomeTip': 'El dinero que realmente queda para los due\u00f1os despu\u00e9s de pagar todo.',
+                'form.assets': 'Total de Activos', 'form.assetsPlaceholder': 'Ej: 500,000.00',
+                'form.assetsTip': 'Todo lo que la empresa posee: efectivo, equipos, inmuebles, inventario.',
+                'form.debt': 'Total de Deudas', 'form.debtPlaceholder': 'Ej: 100,000.00',
+                'form.debtTip': 'Todo el dinero que la empresa debe: pr\u00e9stamos, financiamientos.',
+                'form.workingCapital': 'Capital de Trabajo', 'form.workingCapitalPlaceholder': 'Ej: 50,000.00',
+                'form.workingCapitalTip': 'Efectivo disponible para operaciones diarias.',
+                'form.averageTicket': 'Ticket Promedio', 'form.averageTicketPlaceholder': 'Ej: 150.00',
+                'form.averageTicketTip': 'Cu\u00e1nto gasta cada cliente en promedio por compra.',
+                'form.customers': 'Clientes Activos', 'form.customersPlaceholder': 'Ej: 500',
+                'form.customersTip': 'Cu\u00e1ntos clientes diferentes compraron en el \u00faltimo a\u00f1o.',
+                'form.cashCycle': 'Ciclo de Caja (d\u00edas)', 'form.cashCyclePlaceholder': 'Ej: 30',
+                'form.cashCycleTip': 'Cu\u00e1ntos d\u00edas para convertir inversiones en efectivo.',
+                'form.inventory': 'Inventario Actual', 'form.inventoryPlaceholder': 'Ej: 80,000.00',
+                'form.inventoryTip': 'Valor total de productos en inventario esperando ser vendidos.',
+                'nav.continue': 'CONTINUAR \u2192', 'nav.back': '\u2190 VOLVER', 'nav.calculate': 'CALCULAR VALORACI\u00d3N \u2192',
+                'loading.processing': 'Procesando an\u00e1lisis de valoraci\u00f3n...', 'loading.applying': 'Aplicando m\u00faltiplos sectoriales y factores de ajuste',
+                'results.estimatedValue': 'Valor Estimado de la Empresa', 'results.rangeText': 'Rango de valoraci\u00f3n:',
+                'results.datePrefix': 'Valoraci\u00f3n realizada el',
+                'results.share': '\uD83D\uDCE4 Compartir Resultado', 'results.print': '\uD83D\uDDA8 Imprimir',
+                'sections.methods': 'M\u00e9todos de Valoraci\u00f3n', 'sections.financialHealth': 'Salud Financiera',
+                'sections.patrimonial': 'Indicadores Patrimoniales', 'sections.operational': 'Desempe\u00f1o Operativo',
+                'sections.efficiency': 'Eficiencia Operativa',
+                'cards.revenueVal': 'Valoraci\u00f3n por Ingresos', 'cards.ebitdaVal': 'Valoraci\u00f3n por EBITDA', 'cards.profitVal': 'Valoraci\u00f3n por Utilidad',
+                'cards.revenueMultiple': 'M\u00faltiplo sobre ingresos', 'cards.ebitdaMultiple': 'M\u00faltiplo sobre EBITDA', 'cards.profitMultiple': 'M\u00faltiplo sobre utilidad neta',
+                'cards.ebitdaMargin': 'Margen EBITDA', 'cards.ebitdaOverRevenue': 'EBITDA / Ingresos',
+                'cards.netMargin': 'Margen Neto', 'cards.profitOverRevenue': 'Utilidad / Ingresos',
+                'cards.roe': 'ROE', 'cards.returnOnEquity': 'Retorno sobre patrimonio',
+                'cards.netWorth': 'Patrimonio Neto', 'cards.assetsMinusLiabilities': 'Activos menos pasivos',
+                'cards.enterpriseValue': 'Enterprise Value', 'cards.totalOpValue': 'Valor total de la operaci\u00f3n',
+                'cards.debtRatio': 'Endeudamiento', 'cards.debtOverAssets': 'Deuda / Activos Totales',
+                'cards.revenuePerEmployee': 'Ingresos / Empleado', 'cards.teamProductivity': 'Productividad del equipo',
+                'cards.ltv': 'LTV por Cliente', 'cards.clientValue': 'Valor por cliente',
+                'cards.adjustmentFactor': 'Factor de Ajuste', 'cards.growthPosition': 'Crecimiento + Posici\u00f3n',
+                'cards.inventoryTurnover': 'Rotaci\u00f3n de Inventario', 'cards.timesPerYear': 'Veces por a\u00f1o',
+                'cards.workingCapitalLabel': 'Capital de Trabajo', 'cards.opLiquidity': 'Liquidez operativa',
+                'cards.cashCycleLabel': 'Ciclo de Caja', 'cards.daysToConvert': 'D\u00edas para conversi\u00f3n',
+                'efficiency.low': 'Bajo', 'efficiency.high': 'Alto', 'efficiency.fast': 'R\u00e1pido', 'efficiency.slow': 'Lento',
+                'perf.above': 'Sobre el promedio', 'perf.average': 'En el promedio', 'perf.below': 'Bajo el promedio',
+                'paywall.title': 'Reporte Completo de Valoraci\u00f3n',
+                'paywall.subtitle': 'An\u00e1lisis detallado con 15 indicadores, diagn\u00f3stico y PDF',
+                'paywall.f1': '15 m\u00e9tricas de valoraci\u00f3n usadas por fondos de inversi\u00f3n',
+                'paywall.f2': 'Benchmarks exclusivos de tu sector (datos reales de M&A)',
+                'paywall.f3': 'Reporte PDF profesional \u2014 listo para inversionistas',
+                'paywall.f4': 'Acceso ilimitado por 30 d\u00edas \u2014 recalcula cuando quieras',
+                'paywall.f5': 'BONUS: Auditor\u00eda de Marketing Digital con nota 0-10 y plan de acci\u00f3n',
+                'paywall.button': 'ACCEDER AL REPORTE',
+                'paywall.methodology': 'Metodolog\u00eda validada por +2.000 empresas',
+                'cta.text': 'Desbloquea el reporte completo con 15 indicadores +',
+                'cta.bonus': 'BONUS An\u00e1lisis de MKT',
+                'cta.button': 'ACCEDER AL REPORTE COMPLETO',
+                'cta.methods': 'PayPal \u00b7 Tarjeta \u00b7 Acceso inmediato',
+                'diagnostic.title': '\uD83D\uDD0D Diagn\u00f3stico General',
+                'diagnostic.generatePdf': '\uD83D\uDCC4 Generar Reporte PDF', 'diagnostic.share': '\uD83D\uDCE4 Compartir',
+                'footer.line1': 'Valuation Pro \u00b7 Metodolog\u00eda basada en transacciones reales de M&A \u00b7 \u00a9 2026',
+                'footer.line2': 'M\u00faltiplos sectoriales de fuentes p\u00fablicas (PwC, KPMG, EY) \u00b7 Estimaci\u00f3n indicativa',
+                'toast.unlocked': '\u00a1Reporte desbloqueado con \u00e9xito!',
+                'share.text': '\u00a1Acabo de calcular el valor de mi empresa!\n\nValor estimado: {value}\n\nUsa la calculadora Valuation Pro\nMetodolog\u00eda profesional con m\u00faltiplos reales de M&A\n\n#valuation #emprendimiento',
+                'share.title': 'Resultado de Valoraci\u00f3n',
+                'share.copied': '\u00a1Resultado copiado al portapapeles! P\u00e9galo en tus redes sociales.',
+                'pdf.title': '\u00bfCU\u00c1NTO VALE MI EMPRESA?',
+                'pdf.date': 'Fecha:', 'pdf.company': 'Empresa:', 'pdf.sector': 'Sector:',
+                'pdf.methodology': 'METODOLOG\u00cdA:', 'pdf.results': 'AN\u00c1LISIS COMPLETO:', 'pdf.estimated': 'VALOR ESTIMADO:',
+                'pdf.range': 'Rango:', 'pdf.diagnostic': 'DIAGN\u00d3STICO GENERAL:',
+                'pdf.methLine1': 'M\u00faltiplos basados en transacciones reales de M&A',
+                'pdf.methLine2': 'Descuento de iliquidez aplicado (empresa privada)',
+                'pdf.methLine3': 'Ajuste por tama\u00f1o: factor {v}x aplicado',
+                'pdf.methLine4': 'Ajuste por rentabilidad: factor {v}x',
+                'pdf.methLine5': 'Ajustes por deuda, crecimiento y posici\u00f3n de mercado',
+                'pdf.methLine6': 'Fuentes: PwC, KPMG, EY - transacciones M&A de PyMEs privadas',
+                'pdf.footer1': 'Valuation Pro - Metodolog\u00eda basada en transacciones reales de M&A',
+                'pdf.footer2': 'M\u00faltiplos sectoriales de fuentes p\u00fablicas (PwC, KPMG, EY)',
+                'diag.ebitdaAbove': 'Margen EBITDA de {v}% est\u00e1 sobre la mediana del sector {s} ({b}%)',
+                'diag.ebitdaAvg': 'Margen EBITDA de {v}% est\u00e1 en l\u00ednea con el sector {s} ({b}%)',
+                'diag.ebitdaBelow': 'Margen EBITDA de {v}% est\u00e1 bajo la mediana del sector {s} ({b}%) - optimiza costos',
+                'diag.debtLow': 'Endeudamiento de {v}% bajo el promedio del sector ({b}%) - estructura saludable',
+                'diag.debtMed': 'Endeudamiento de {v}% cercano al promedio del sector ({b}%) - monitorea el apalancamiento',
+                'diag.debtHigh': 'Endeudamiento de {v}% sobre el promedio del sector ({b}%) - riesgo financiero significativo',
+                'diag.roeHigh': 'Retorno sobre patrimonio atractivo para inversionistas',
+                'diag.roeMed': 'ROE promedio - busca mayor eficiencia del capital',
+                'diag.roeLow': 'ROE bajo - el capital de los socios rinde poco',
+                'diag.growthPos': 'Empresa en crecimiento - m\u00faltiplos de mercado favorables',
+                'diag.growthNeg': 'Ingresos en ca\u00edda - revisa el modelo de negocio',
+                'diag.marginHigh': 'Margen neto sobre lo esperado - excelente eficiencia',
+                'diag.invHigh': 'Rotaci\u00f3n de inventario eficiente - buena gesti\u00f3n',
+                'diag.invLow': 'Rotaci\u00f3n de inventario baja - capital atrapado en inventario',
+                'diag.sizeAdj': 'Ajuste por tama\u00f1o aplicado: -{v}% (empresas menores tienen m\u00faltiplos m\u00e1s bajos)',
+                'diag.illiquidity': 'Descuento de iliquidez de {v}% aplicado - empresas privadas valen menos que las listadas en bolsa',
+                'mkt.title': '\uD83D\uDCF1 An\u00e1lisis de Marketing Digital (Bonus)',
+                'mkt.scoreTitle': 'Nota de Marketing', 'mkt.scoreLabel': 'Evaluaci\u00f3n profesional de MKT',
+                'mkt.diagTitle': 'Diagn\u00f3stico de Marketing',
+                'mkt.strongPoint': 'Punto fuerte:', 'mkt.opportunity': 'Mayor oportunidad:',
+                'mkt.recommendation': 'Recomendaci\u00f3n principal:',
+                'mkt.benchmarkNote': 'An\u00e1lisis basado en benchmarks de marketing digital para {s} ({y}).',
+                'mkt.labels': ['Cr\u00edtico','Muy d\u00e9bil','D\u00e9bil','Bajo promedio','Regular','Promedio','Sobre promedio','Bueno','Muy bueno','Excelente','Referencia'],
+                'mkt.ig': [
+                    { name: 'Presencia en plataforma', tip: 'Tener perfil en Instagram es esencial para visibilidad' },
+                    { name: 'Bio profesional', tip: 'Optimiza tu bio con CTA, link y propuesta de valor' },
+                    { name: 'Consistencia de posts', tip: 'Publica al menos 3-4x por semana con contenido de valor' },
+                    { name: 'Estrategia de Stories', tip: 'Usa stories diariamente con encuestas y CTAs' },
+                    { name: 'Reels y video corto', tip: 'Reels tienen 2x m\u00e1s alcance que posts est\u00e1ticos en 2026' },
+                    { name: 'Embudo de ventas', tip: 'Crea un embudo: contenido gratis > lead magnet > oferta' },
+                    { name: 'Prueba social', tip: 'Comparte testimonios y casos de \u00e9xito de clientes' },
+                    { name: 'Link en bio optimizado', tip: 'Usa Linktree o similar con links rastreados (UTM)' }
+                ],
+                'mkt.tt': [
+                    { name: 'Presencia en plataforma', tip: 'TikTok es el canal de mayor crecimiento org\u00e1nico en 2026' },
+                    { name: 'Perfil optimizado', tip: 'Bio clara, link y CTA en el perfil' },
+                    { name: 'Frecuencia de publicaci\u00f3n', tip: 'Publica 1-2 videos por d\u00eda para maximizar alcance' },
+                    { name: 'Formato de contenido', tip: 'Videos educativos y de bastidores funcionan mejor para B2B' },
+                    { name: 'Uso de tendencias', tip: 'Adapta trends virales a tu nicho' },
+                    { name: 'Engagement', tip: 'Responde todos los comentarios e interact\u00faa con seguidores' },
+                    { name: 'Conversi\u00f3n a ventas', tip: 'Incluye CTAs en videos y dirige al link en bio' },
+                    { name: 'Cross-posting', tip: 'Reposta tus mejores TikToks en Reels y Shorts' }
+                ],
+                'mkt.web': [
+                    { name: 'Presencia online', tip: 'Tener sitio propio transmite profesionalismo y credibilidad' },
+                    { name: 'SSL / Seguridad', tip: 'Sitios sin HTTPS pierden ranking en Google y confianza' },
+                    { name: 'SEO b\u00e1sico', tip: 'Optimiza t\u00edtulos, meta descriptions y headings para Google' },
+                    { name: 'Velocidad de carga', tip: 'Sitios que tardan +3s pierden 53% de visitantes m\u00f3viles' },
+                    { name: 'Mobile responsivo', tip: '70%+ del tr\u00e1fico viene de m\u00f3vil - tu sitio debe ser mobile-first' },
+                    { name: 'CTA y conversi\u00f3n', tip: 'Ten CTAs claros en cada p\u00e1gina' },
+                    { name: 'Google Mi Negocio', tip: 'Registra tu empresa en Google Maps para b\u00fasquedas locales' },
+                    { name: 'Analytics instalado', tip: 'Sin datos no sabes qu\u00e9 funciona. Instala GA4' }
+                ],
+                'sector.tecnologia': 'Tecnolog\u00eda', 'sector.saude': 'Salud', 'sector.educacao': 'Educaci\u00f3n',
+                'sector.alimentacao': 'Alimentaci\u00f3n y Bebidas', 'sector.varejo': 'Retail', 'sector.servicos': 'Servicios',
+                'sector.construcao': 'Construcci\u00f3n', 'sector.industria': 'Industria', 'sector.agronegocio': 'Agroindustria',
+                'sector.energia': 'Energ\u00eda', 'sector.logistica': 'Log\u00edstica', 'sector.financeiro': 'Financiero',
+                'sector.franquias': 'Franquicias', 'sector.beleza': 'Belleza y Est\u00e9tica',
+                'sector.ecommerce': 'E-commerce / Marketplace', 'sector.imobiliario': 'Inmobiliario', 'sector.consultoria': 'Consultor\u00eda',
+                'common.anonymous': 'Empresa An\u00f3nima', 'common.na': 'N/A', 'common.days': 'd\u00edas'
+            },
+            fr: {
+                'header.title': 'Combien vaut votre entreprise ?',
+                'header.subtitle': '\u00c9valuation bas\u00e9e sur les multiples r\u00e9els de M&A',
+                'steps.1': 'Entreprise', 'steps.2': 'Finances', 'steps.3': 'Op\u00e9rations', 'steps.4': 'R\u00e9sultat',
+                'step1.title': 'Donn\u00e9es de l\'Entreprise', 'step1.subtitle': 'Informations de base sur votre entreprise',
+                'step1.privacy': '\uD83D\uDD12 Vos donn\u00e9es sont trait\u00e9es localement. Aucune information n\'est envoy\u00e9e \u00e0 un serveur.',
+                'step2.title': 'Donn\u00e9es Financi\u00e8res', 'step2.subtitle': 'Chiffres financiers cl\u00e9s de votre entreprise',
+                'step3.title': 'Donn\u00e9es Op\u00e9rationnelles', 'step3.subtitle': 'M\u00e9triques op\u00e9rationnelles pour une analyse plus pr\u00e9cise (optionnel)',
+                'form.companyName': 'Nom de l\'Entreprise (Optionnel)', 'form.companyNamePlaceholder': 'Laissez vide pour la confidentialit\u00e9',
+                'form.companyNameTip': 'Le nom de votre entreprise n\'appara\u00eetra que dans le rapport PDF.',
+                'form.mktChannel': 'Pr\u00e9sence Digitale (Bonus MKT)', 'form.mktChannelPlaceholder': '@votreinstagram, @votretiktok ou www.votresite.com',
+                'form.mktChannelTip': 'Entrez votre Instagram, TikTok ou site web pour une analyse bonus marketing digital.',
+                'form.sector': 'Secteur d\'Activit\u00e9', 'form.sectorPlaceholder': 'S\u00e9lectionnez le secteur...',
+                'form.sectorTip': 'Choisissez le secteur qui d\u00e9crit le mieux votre entreprise.',
+                'form.employees': 'Nombre d\'Employ\u00e9s', 'form.employeesPlaceholder': 'Ex : 25',
+                'form.employeesTip': 'Total des personnes travaillant dans l\'entreprise.',
+                'form.marketPosition': 'Position sur le March\u00e9',
+                'form.marketPositionTip': 'Comment votre entreprise se compare \u00e0 la concurrence.',
+                'form.marketPositionPlaceholder': 'S\u00e9lectionnez...',
+                'form.mp.lider': 'Leader du March\u00e9', 'form.mp.forte': 'Position Forte', 'form.mp.media': 'Position Moyenne', 'form.mp.emergente': 'Entreprise \u00c9mergente',
+                'form.growth': 'Croissance du CA (3 derni\u00e8res ann\u00e9es)',
+                'form.growthTip': 'Comparez le CA actuel \u00e0 celui d\'il y a 3 ans.',
+                'form.growthPlaceholder': 'S\u00e9lectionnez...',
+                'form.gr.alto': '\u00c9lev\u00e9e (>30%/an)', 'form.gr.medio': 'Moyenne (10-30%/an)', 'form.gr.baixo': 'Faible (0-10%/an)', 'form.gr.negativo': 'N\u00e9gative (<0%/an)',
+                'form.revenue': 'Chiffre d\'Affaires Annuel', 'form.revenuePlaceholder': 'Ex : 1 000 000,00',
+                'form.revenueTip': 'Total des revenus de l\'entreprise sur la derni\u00e8re ann\u00e9e.',
+                'form.ebitda': 'EBITDA Annuel', 'form.ebitdaPlaceholder': 'Ex : 200 000,00',
+                'form.ebitdaTip': 'R\u00e9sultat avant int\u00e9r\u00eats, imp\u00f4ts, d\u00e9pr\u00e9ciations et amortissements.',
+                'form.netIncome': 'R\u00e9sultat Net Annuel', 'form.netIncomePlaceholder': 'Ex : 150 000,00',
+                'form.netIncomeTip': 'L\'argent qui reste r\u00e9ellement pour les propri\u00e9taires apr\u00e8s tout payer.',
+                'form.assets': 'Total des Actifs', 'form.assetsPlaceholder': 'Ex : 500 000,00',
+                'form.assetsTip': 'Tout ce que l\'entreprise poss\u00e8de : tr\u00e9sorerie, \u00e9quipements, immobilier, stocks.',
+                'form.debt': 'Total des Dettes', 'form.debtPlaceholder': 'Ex : 100 000,00',
+                'form.debtTip': 'Tout l\'argent que l\'entreprise doit : emprunts, financements.',
+                'form.workingCapital': 'Fonds de Roulement', 'form.workingCapitalPlaceholder': 'Ex : 50 000,00',
+                'form.workingCapitalTip': 'Tr\u00e9sorerie disponible pour les op\u00e9rations quotidiennes.',
+                'form.averageTicket': 'Panier Moyen', 'form.averageTicketPlaceholder': 'Ex : 150,00',
+                'form.averageTicketTip': 'Combien chaque client d\u00e9pense en moyenne par achat.',
+                'form.customers': 'Clients Actifs', 'form.customersPlaceholder': 'Ex : 500',
+                'form.customersTip': 'Combien de clients diff\u00e9rents ont achet\u00e9 l\'ann\u00e9e derni\u00e8re.',
+                'form.cashCycle': 'Cycle de Tr\u00e9sorerie (jours)', 'form.cashCyclePlaceholder': 'Ex : 30',
+                'form.cashCycleTip': 'Combien de jours pour convertir les investissements en tr\u00e9sorerie.',
+                'form.inventory': 'Stock Actuel', 'form.inventoryPlaceholder': 'Ex : 80 000,00',
+                'form.inventoryTip': 'Valeur totale des produits en stock en attente de vente.',
+                'nav.continue': 'CONTINUER \u2192', 'nav.back': '\u2190 RETOUR', 'nav.calculate': 'CALCULER LA VALORISATION \u2192',
+                'loading.processing': 'Analyse de valorisation en cours...', 'loading.applying': 'Application des multiples sectoriels et facteurs d\'ajustement',
+                'results.estimatedValue': 'Valeur Estim\u00e9e de l\'Entreprise', 'results.rangeText': 'Fourchette de valorisation :',
+                'results.datePrefix': '\u00c9valuation r\u00e9alis\u00e9e le',
+                'results.share': '\uD83D\uDCE4 Partager le R\u00e9sultat', 'results.print': '\uD83D\uDDA8 Imprimer',
+                'sections.methods': 'M\u00e9thodes d\'\u00c9valuation', 'sections.financialHealth': 'Sant\u00e9 Financi\u00e8re',
+                'sections.patrimonial': 'Indicateurs Patrimoniaux', 'sections.operational': 'Performance Op\u00e9rationnelle',
+                'sections.efficiency': 'Efficacit\u00e9 Op\u00e9rationnelle',
+                'cards.revenueVal': 'Valorisation par CA', 'cards.ebitdaVal': 'Valorisation par EBITDA', 'cards.profitVal': 'Valorisation par R\u00e9sultat',
+                'cards.revenueMultiple': 'Multiple sur CA', 'cards.ebitdaMultiple': 'Multiple sur EBITDA', 'cards.profitMultiple': 'Multiple sur r\u00e9sultat net',
+                'cards.ebitdaMargin': 'Marge EBITDA', 'cards.ebitdaOverRevenue': 'EBITDA / CA',
+                'cards.netMargin': 'Marge Nette', 'cards.profitOverRevenue': 'R\u00e9sultat / CA',
+                'cards.roe': 'ROE', 'cards.returnOnEquity': 'Retour sur capitaux propres',
+                'cards.netWorth': 'Capitaux Propres', 'cards.assetsMinusLiabilities': 'Actifs moins passifs',
+                'cards.enterpriseValue': 'Valeur d\'Entreprise', 'cards.totalOpValue': 'Valeur totale de l\'op\u00e9ration',
+                'cards.debtRatio': 'Endettement', 'cards.debtOverAssets': 'Dettes / Actifs Totaux',
+                'cards.revenuePerEmployee': 'CA / Employ\u00e9', 'cards.teamProductivity': 'Productivit\u00e9 de l\'\u00e9quipe',
+                'cards.ltv': 'LTV par Client', 'cards.clientValue': 'Valeur par client',
+                'cards.adjustmentFactor': 'Facteur d\'Ajustement', 'cards.growthPosition': 'Croissance + Position',
+                'cards.inventoryTurnover': 'Rotation des Stocks', 'cards.timesPerYear': 'Fois par an',
+                'cards.workingCapitalLabel': 'Fonds de Roulement', 'cards.opLiquidity': 'Liquidit\u00e9 op\u00e9rationnelle',
+                'cards.cashCycleLabel': 'Cycle de Tr\u00e9sorerie', 'cards.daysToConvert': 'Jours de conversion',
+                'efficiency.low': 'Faible', 'efficiency.high': '\u00c9lev\u00e9', 'efficiency.fast': 'Rapide', 'efficiency.slow': 'Lent',
+                'perf.above': 'Au-dessus de la moyenne', 'perf.average': 'Dans la moyenne', 'perf.below': 'En-dessous de la moyenne',
+                'paywall.title': 'Rapport Complet de Valorisation',
+                'paywall.subtitle': 'Analyse d\u00e9taill\u00e9e avec 15 indicateurs, diagnostic et PDF',
+                'paywall.f1': '15 m\u00e9triques de valorisation utilis\u00e9es par les fonds d\'investissement',
+                'paywall.f2': 'Benchmarks exclusifs de votre secteur (donn\u00e9es r\u00e9elles de M&A)',
+                'paywall.f3': 'Rapport PDF professionnel \u2014 pr\u00eat pour les investisseurs',
+                'paywall.f4': 'Acc\u00e8s illimit\u00e9 pendant 30 jours \u2014 recalculez quand vous voulez',
+                'paywall.f5': 'BONUS : Audit Marketing Digital not\u00e9 0-10 avec plan d\'action',
+                'paywall.button': 'ACC\u00c9DER AU RAPPORT',
+                'paywall.methodology': 'M\u00e9thodologie valid\u00e9e par +2 000 entreprises',
+                'cta.text': 'D\u00e9bloquez le rapport complet avec 15 indicateurs +',
+                'cta.bonus': 'BONUS Analyse MKT',
+                'cta.button': 'ACC\u00c9DER AU RAPPORT COMPLET',
+                'cta.methods': 'PayPal \u00b7 Carte bancaire \u00b7 Acc\u00e8s imm\u00e9diat',
+                'diagnostic.title': '\uD83D\uDD0D Diagnostic G\u00e9n\u00e9ral',
+                'diagnostic.generatePdf': '\uD83D\uDCC4 G\u00e9n\u00e9rer le Rapport PDF', 'diagnostic.share': '\uD83D\uDCE4 Partager',
+                'footer.line1': 'Valuation Pro \u00b7 M\u00e9thodologie bas\u00e9e sur des transactions r\u00e9elles de M&A \u00b7 \u00a9 2026',
+                'footer.line2': 'Multiples sectoriels de sources publiques (PwC, KPMG, EY) \u00b7 Estimation indicative',
+                'toast.unlocked': 'Rapport d\u00e9bloqu\u00e9 avec succ\u00e8s !',
+                'share.text': 'Je viens de calculer la valeur de mon entreprise !\n\nValeur estim\u00e9e : {value}\n\nUtilisez le calculateur Valuation Pro\nM\u00e9thodologie professionnelle avec multiples r\u00e9els de M&A\n\n#valuation #entrepreneuriat',
+                'share.title': 'R\u00e9sultat de Valorisation',
+                'share.copied': 'R\u00e9sultat copi\u00e9 dans le presse-papiers ! Collez-le sur vos r\u00e9seaux sociaux.',
+                'pdf.title': 'COMBIEN VAUT MON ENTREPRISE ?',
+                'pdf.date': 'Date :', 'pdf.company': 'Entreprise :', 'pdf.sector': 'Secteur :',
+                'pdf.methodology': 'M\u00c9THODOLOGIE :', 'pdf.results': 'ANALYSE COMPL\u00c8TE :', 'pdf.estimated': 'VALEUR ESTIM\u00c9E :',
+                'pdf.range': 'Fourchette :', 'pdf.diagnostic': 'DIAGNOSTIC G\u00c9N\u00c9RAL :',
+                'pdf.methLine1': 'Multiples bas\u00e9s sur des transactions r\u00e9elles de M&A',
+                'pdf.methLine2': 'D\u00e9cote d\'illiquidit\u00e9 appliqu\u00e9e (entreprise priv\u00e9e)',
+                'pdf.methLine3': 'Ajustement de taille : facteur {v}x appliqu\u00e9',
+                'pdf.methLine4': 'Ajustement de rentabilit\u00e9 : facteur {v}x',
+                'pdf.methLine5': 'Ajustements pour dette, croissance et position de march\u00e9',
+                'pdf.methLine6': 'Sources : PwC, KPMG, EY - transactions M&A de PME priv\u00e9es',
+                'pdf.footer1': 'Valuation Pro - M\u00e9thodologie bas\u00e9e sur des transactions r\u00e9elles de M&A',
+                'pdf.footer2': 'Multiples sectoriels de sources publiques (PwC, KPMG, EY)',
+                'diag.ebitdaAbove': 'Marge EBITDA de {v}% au-dessus de la m\u00e9diane du secteur {s} ({b}%)',
+                'diag.ebitdaAvg': 'Marge EBITDA de {v}% en ligne avec le secteur {s} ({b}%)',
+                'diag.ebitdaBelow': 'Marge EBITDA de {v}% en-dessous du secteur {s} ({b}%) - optimisez les co\u00fbts',
+                'diag.debtLow': 'Endettement de {v}% sous la moyenne du secteur ({b}%) - structure saine',
+                'diag.debtMed': 'Endettement de {v}% proche de la moyenne du secteur ({b}%) - surveillez le levier',
+                'diag.debtHigh': 'Endettement de {v}% au-dessus de la moyenne du secteur ({b}%) - risque financier significatif',
+                'diag.roeHigh': 'Retour sur capitaux propres attractif pour les investisseurs',
+                'diag.roeMed': 'ROE moyen - cherchez une meilleure efficacit\u00e9 du capital',
+                'diag.roeLow': 'ROE faible - le capital des associ\u00e9s rapporte peu',
+                'diag.growthPos': 'Entreprise en croissance - multiples de march\u00e9 favorables',
+                'diag.growthNeg': 'CA en baisse - r\u00e9visez le mod\u00e8le \u00e9conomique',
+                'diag.marginHigh': 'Marge nette au-dessus des attentes - excellente efficacit\u00e9',
+                'diag.invHigh': 'Rotation des stocks efficace - bonne gestion',
+                'diag.invLow': 'Rotation des stocks faible - capital immobilis\u00e9 en stock',
+                'diag.sizeAdj': 'Ajustement de taille appliqu\u00e9 : -{v}% (les plus petites entreprises ont des multiples plus bas)',
+                'diag.illiquidity': 'D\u00e9cote d\'illiquidit\u00e9 de {v}% appliqu\u00e9e - les entreprises priv\u00e9es valent moins que les \u00e9quivalents cot\u00e9s',
+                'mkt.title': '\uD83D\uDCF1 Analyse Marketing Digital (Bonus)',
+                'mkt.scoreTitle': 'Note Marketing', 'mkt.scoreLabel': '\u00c9valuation professionnelle MKT',
+                'mkt.diagTitle': 'Diagnostic Marketing',
+                'mkt.strongPoint': 'Point fort :', 'mkt.opportunity': 'Plus grande opportunit\u00e9 :',
+                'mkt.recommendation': 'Recommandation principale :',
+                'mkt.benchmarkNote': 'Analyse bas\u00e9e sur les benchmarks marketing digital pour {s} ({y}).',
+                'mkt.labels': ['Critique','Tr\u00e8s faible','Faible','Sous la moyenne','Passable','Moyen','Au-dessus','Bon','Tr\u00e8s bon','Excellent','R\u00e9f\u00e9rence'],
+                'mkt.ig': [
+                    { name: 'Pr\u00e9sence sur la plateforme', tip: 'Avoir un profil Instagram est essentiel pour la visibilit\u00e9' },
+                    { name: 'Bio professionnelle', tip: 'Optimisez votre bio avec un CTA, lien et proposition de valeur' },
+                    { name: 'R\u00e9gularit\u00e9 des posts', tip: 'Publiez au moins 3-4x par semaine avec du contenu de valeur' },
+                    { name: 'Strat\u00e9gie Stories', tip: 'Utilisez les stories quotidiennement avec sondages et CTAs' },
+                    { name: 'Reels et vid\u00e9o courte', tip: 'Les Reels ont 2x plus de port\u00e9e que les posts statiques en 2026' },
+                    { name: 'Tunnel de vente', tip: 'Cr\u00e9ez un tunnel : contenu gratuit > lead magnet > offre' },
+                    { name: 'Preuve sociale', tip: 'Partagez des t\u00e9moignages et des \u00e9tudes de cas clients' },
+                    { name: 'Lien en bio optimis\u00e9', tip: 'Utilisez Linktree ou similaire avec liens trac\u00e9s (UTM)' }
+                ],
+                'mkt.tt': [
+                    { name: 'Pr\u00e9sence sur la plateforme', tip: 'TikTok est le canal \u00e0 plus forte croissance organique en 2026' },
+                    { name: 'Profil optimis\u00e9', tip: 'Bio claire, lien et CTA sur le profil' },
+                    { name: 'Fr\u00e9quence de publication', tip: 'Publiez 1-2 vid\u00e9os par jour pour maximiser la port\u00e9e' },
+                    { name: 'Format de contenu', tip: 'Les vid\u00e9os \u00e9ducatives et de coulisses performent mieux en B2B' },
+                    { name: 'Utilisation des tendances', tip: 'Adaptez les tendances virales \u00e0 votre niche' },
+                    { name: 'Engagement', tip: 'R\u00e9pondez \u00e0 tous les commentaires et interagissez' },
+                    { name: 'Conversion en ventes', tip: 'Incluez des CTAs dans les vid\u00e9os et renvoyez au lien en bio' },
+                    { name: 'Cross-posting', tip: 'Repostez vos meilleurs TikToks sur Reels et Shorts' }
+                ],
+                'mkt.web': [
+                    { name: 'Pr\u00e9sence en ligne', tip: 'Avoir son propre site transmet professionnalisme et cr\u00e9dibilit\u00e9' },
+                    { name: 'SSL / S\u00e9curit\u00e9', tip: 'Les sites sans HTTPS perdent en r\u00e9f\u00e9rencement et en confiance' },
+                    { name: 'SEO de base', tip: 'Optimisez titres, m\u00e9ta descriptions et balises pour Google' },
+                    { name: 'Vitesse de chargement', tip: 'Les sites qui mettent +3s perdent 53% des visiteurs mobiles' },
+                    { name: 'Responsive mobile', tip: '70%+ du trafic vient du mobile - votre site doit \u00eatre mobile-first' },
+                    { name: 'CTA et conversion', tip: 'Ayez des CTAs clairs sur chaque page' },
+                    { name: 'Google My Business', tip: 'Inscrivez votre entreprise sur Google Maps pour les recherches locales' },
+                    { name: 'Analytics install\u00e9', tip: 'Sans donn\u00e9es, vous ne savez pas ce qui fonctionne. Installez GA4' }
+                ],
+                'sector.tecnologia': 'Technologie', 'sector.saude': 'Sant\u00e9', 'sector.educacao': '\u00c9ducation',
+                'sector.alimentacao': 'Agroalimentaire', 'sector.varejo': 'Commerce de D\u00e9tail', 'sector.servicos': 'Services',
+                'sector.construcao': 'Construction', 'sector.industria': 'Industrie', 'sector.agronegocio': 'Agroalimentaire',
+                'sector.energia': '\u00c9nergie', 'sector.logistica': 'Logistique', 'sector.financeiro': 'Services Financiers',
+                'sector.franquias': 'Franchises', 'sector.beleza': 'Beaut\u00e9 & Bien-\u00eatre',
+                'sector.ecommerce': 'E-commerce / Marketplace', 'sector.imobiliario': 'Immobilier', 'sector.consultoria': 'Conseil',
+                'common.anonymous': 'Entreprise Anonyme', 'common.na': 'N/A', 'common.days': 'jours'
+            },
+            hi: {
+                'header.title': '\u0906\u092a\u0915\u0940 \u0915\u0902\u092a\u0928\u0940 \u0915\u0940 \u0915\u0940\u092e\u0924 \u0915\u094d\u092f\u093e \u0939\u0948?',
+                'header.subtitle': '\u0935\u093e\u0938\u094d\u0924\u0935\u093f\u0915 M&A \u0932\u0947\u0928\u0926\u0947\u0928 \u0917\u0941\u0923\u0915\u094b\u0902 \u092a\u0930 \u0906\u0927\u093e\u0930\u093f\u0924 \u092e\u0942\u0932\u094d\u092f\u093e\u0902\u0915\u0928',
+                'steps.1': '\u0915\u0902\u092a\u0928\u0940 \u0921\u0947\u091f\u093e', 'steps.2': '\u0935\u093f\u0924\u094d\u0924\u0940\u092f', 'steps.3': '\u0938\u0902\u091a\u093e\u0932\u0928', 'steps.4': '\u092a\u0930\u093f\u0923\u093e\u092e',
+                'step1.title': '\u0915\u0902\u092a\u0928\u0940 \u0915\u0940 \u091c\u093e\u0928\u0915\u093e\u0930\u0940', 'step1.subtitle': '\u0906\u092a\u0915\u0947 \u0935\u094d\u092f\u0935\u0938\u093e\u092f \u0915\u0940 \u092e\u0942\u0932 \u091c\u093e\u0928\u0915\u093e\u0930\u0940',
+                'step1.privacy': '\uD83D\uDD12 \u0906\u092a\u0915\u093e \u0921\u0947\u091f\u093e \u0938\u094d\u0925\u093e\u0928\u0940\u092f \u0930\u0942\u092a \u0938\u0947 \u092a\u094d\u0930\u094b\u0938\u0947\u0938 \u0939\u094b\u0924\u093e \u0939\u0948\u0964 \u0915\u094b\u0908 \u091c\u093e\u0928\u0915\u093e\u0930\u0940 \u0938\u0930\u094d\u0935\u0930 \u0915\u094b \u0928\u0939\u0940\u0902 \u092d\u0947\u091c\u0940 \u091c\u093e\u0924\u0940\u0964',
+                'step2.title': '\u0935\u093f\u0924\u094d\u0924\u0940\u092f \u0921\u0947\u091f\u093e', 'step2.subtitle': '\u0906\u092a\u0915\u0940 \u0915\u0902\u092a\u0928\u0940 \u0915\u0947 \u092e\u0941\u0916\u094d\u092f \u0935\u093f\u0924\u094d\u0924\u0940\u092f \u0906\u0902\u0915\u0921\u093c\u0947',
+                'step3.title': '\u0938\u0902\u091a\u093e\u0932\u0928 \u0921\u0947\u091f\u093e', 'step3.subtitle': '\u0905\u0927\u093f\u0915 \u0938\u091f\u0940\u0915 \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923 \u0915\u0947 \u0932\u093f\u090f \u0938\u0902\u091a\u093e\u0932\u0928 \u092e\u0947\u091f\u094d\u0930\u093f\u0915\u094d\u0938 (\u0935\u0948\u0915\u0932\u094d\u092a\u093f\u0915)',
+                'form.companyName': '\u0915\u0902\u092a\u0928\u0940 \u0915\u093e \u0928\u093e\u092e (\u0935\u0948\u0915\u0932\u094d\u092a\u093f\u0915)', 'form.companyNamePlaceholder': '\u0917\u094b\u092a\u0928\u0940\u092f\u0924\u093e \u0915\u0947 \u0932\u093f\u090f \u0916\u093e\u0932\u0940 \u091b\u094b\u0921\u093c\u0947\u0902',
+                'form.companyNameTip': 'Your company name will only appear in the PDF report.',
+                'form.mktChannel': '\u0921\u093f\u091c\u093f\u091f\u0932 \u0909\u092a\u0938\u094d\u0925\u093f\u0924\u093f (MKT \u092c\u094b\u0928\u0938)', 'form.mktChannelPlaceholder': '@yourinstagram, @yourtiktok or www.yoursite.com',
+                'form.mktChannelTip': 'Enter your Instagram, TikTok or website for a bonus digital marketing analysis.',
+                'form.sector': '\u0909\u0926\u094d\u092f\u094b\u0917 \u0915\u094d\u0937\u0947\u0924\u094d\u0930', 'form.sectorPlaceholder': '\u0915\u094d\u0937\u0947\u0924\u094d\u0930 \u091a\u0941\u0928\u0947\u0902...',
+                'form.sectorTip': 'Choose the sector that best describes your business.',
+                'form.employees': '\u0915\u0930\u094d\u092e\u091a\u093e\u0930\u093f\u092f\u094b\u0902 \u0915\u0940 \u0938\u0902\u0916\u094d\u092f\u093e', 'form.employeesPlaceholder': '\u0909\u0926\u093e: 25',
+                'form.employeesTip': 'Total people working at the company.',
+                'form.marketPosition': '\u092c\u093e\u091c\u093e\u0930 \u0938\u094d\u0925\u093f\u0924\u093f',
+                'form.marketPositionTip': 'How your company compares to competitors.',
+                'form.marketPositionPlaceholder': '\u091a\u0941\u0928\u0947\u0902...',
+                'form.mp.lider': '\u092c\u093e\u091c\u093e\u0930 \u0928\u0947\u0924\u093e', 'form.mp.forte': '\u092e\u091c\u092c\u0942\u0924 \u0938\u094d\u0925\u093f\u0924\u093f', 'form.mp.media': '\u0914\u0938\u0924 \u0938\u094d\u0925\u093f\u0924\u093f', 'form.mp.emergente': '\u0909\u092d\u0930\u0924\u0940 \u0915\u0902\u092a\u0928\u0940',
+                'form.growth': '\u0930\u093e\u091c\u0938\u094d\u0935 \u0935\u0943\u0926\u094d\u0927\u093f (\u092a\u093f\u091b\u0932\u0947 3 \u0935\u0930\u094d\u0937)',
+                'form.growthTip': 'Compare current revenue to 3 years ago.',
+                'form.growthPlaceholder': '\u091a\u0941\u0928\u0947\u0902...',
+                'form.gr.alto': '\u0909\u091a\u094d\u091a (>30%/\u0935\u0930\u094d\u0937)', 'form.gr.medio': '\u092e\u0927\u094d\u092f\u092e (10-30%/\u0935\u0930\u094d\u0937)', 'form.gr.baixo': '\u0928\u093f\u092e\u094d\u0928 (0-10%/\u0935\u0930\u094d\u0937)', 'form.gr.negativo': '\u0928\u0915\u093e\u0930\u093e\u0924\u094d\u092e\u0915 (<0%/\u0935\u0930\u094d\u0937)',
+                'form.revenue': '\u0935\u093e\u0930\u094d\u0937\u093f\u0915 \u0930\u093e\u091c\u0938\u094d\u0935', 'form.revenuePlaceholder': '\u0909\u0926\u093e: 1,00,00,000.00',
+                'form.revenueTip': 'Total money the company earned last year.',
+                'form.ebitda': '\u0935\u093e\u0930\u094d\u0937\u093f\u0915 EBITDA', 'form.ebitdaPlaceholder': '\u0909\u0926\u093e: 20,00,000.00',
+                'form.ebitdaTip': 'Earnings before interest, taxes, depreciation and amortization.',
+                'form.netIncome': '\u0935\u093e\u0930\u094d\u0937\u093f\u0915 \u0936\u0941\u0926\u094d\u0927 \u0932\u093e\u092d', 'form.netIncomePlaceholder': '\u0909\u0926\u093e: 15,00,000.00',
+                'form.netIncomeTip': 'The money that actually remains for owners after paying everything.',
+                'form.assets': '\u0915\u0941\u0932 \u0938\u0902\u092a\u0924\u094d\u0924\u093f', 'form.assetsPlaceholder': '\u0909\u0926\u093e: 50,00,000.00',
+                'form.assetsTip': 'Everything the company owns that has value.',
+                'form.debt': '\u0915\u0941\u0932 \u0915\u0930\u094d\u091c', 'form.debtPlaceholder': '\u0909\u0926\u093e: 10,00,000.00',
+                'form.debtTip': 'All money the company owes.',
+                'form.workingCapital': '\u0915\u093e\u0930\u094d\u092f\u0936\u0940\u0932 \u092a\u0942\u0902\u091c\u0940', 'form.workingCapitalPlaceholder': '\u0909\u0926\u093e: 5,00,000.00',
+                'form.workingCapitalTip': 'Cash available for day-to-day operations.',
+                'form.averageTicket': '\u0914\u0938\u0924 \u091f\u093f\u0915\u091f', 'form.averageTicketPlaceholder': '\u0909\u0926\u093e: 1,500.00',
+                'form.averageTicketTip': 'How much each customer spends on average per purchase.',
+                'form.customers': '\u0938\u0915\u094d\u0930\u093f\u092f \u0917\u094d\u0930\u093e\u0939\u0915', 'form.customersPlaceholder': '\u0909\u0926\u093e: 500',
+                'form.customersTip': 'How many different customers bought in the last year.',
+                'form.cashCycle': '\u0928\u0915\u0926 \u091a\u0915\u094d\u0930 (\u0926\u093f\u0928)', 'form.cashCyclePlaceholder': '\u0909\u0926\u093e: 30',
+                'form.cashCycleTip': 'How many days to convert investments into cash.',
+                'form.inventory': '\u0935\u0930\u094d\u0924\u092e\u093e\u0928 \u0907\u0928\u094d\u0935\u0947\u0902\u091f\u0930\u0940', 'form.inventoryPlaceholder': '\u0909\u0926\u093e: 8,00,000.00',
+                'form.inventoryTip': 'Total value of products in stock.',
+                'nav.continue': '\u0906\u0917\u0947 \u092c\u0922\u093c\u0947\u0902 \u2192', 'nav.back': '\u2190 \u0935\u093e\u092a\u0938', 'nav.calculate': '\u092e\u0942\u0932\u094d\u092f\u093e\u0902\u0915\u0928 \u0917\u0923\u0928\u093e \u0915\u0930\u0947\u0902 \u2192',
+                'loading.processing': '\u092e\u0942\u0932\u094d\u092f\u093e\u0902\u0915\u0928 \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923 \u092a\u094d\u0930\u0915\u094d\u0930\u093f\u092f\u093e \u092e\u0947\u0902...', 'loading.applying': '\u0938\u0947\u0915\u094d\u091f\u0930 \u0917\u0941\u0923\u0915 \u0914\u0930 \u0938\u092e\u093e\u092f\u094b\u091c\u0928 \u0915\u093e\u0930\u0915 \u0932\u093e\u0917\u0942 \u0915\u0930 \u0930\u0939\u0947 \u0939\u0948\u0902',
+                'results.estimatedValue': '\u0915\u0902\u092a\u0928\u0940 \u0915\u093e \u0905\u0928\u0941\u092e\u093e\u0928\u093f\u0924 \u092e\u0942\u0932\u094d\u092f', 'results.rangeText': '\u092e\u0942\u0932\u094d\u092f\u093e\u0902\u0915\u0928 \u0938\u0940\u092e\u093e:',
+                'results.datePrefix': '\u092e\u0942\u0932\u094d\u092f\u093e\u0902\u0915\u0928 \u0924\u093f\u0925\u093f',
+                'results.share': '\uD83D\uDCE4 \u092a\u0930\u093f\u0923\u093e\u092e \u0938\u093e\u091d\u093e \u0915\u0930\u0947\u0902', 'results.print': '\uD83D\uDDA8 \u092a\u094d\u0930\u093f\u0902\u091f',
+                'sections.methods': '\u092e\u0942\u0932\u094d\u092f\u093e\u0902\u0915\u0928 \u0935\u093f\u0927\u093f\u092f\u093e\u0901', 'sections.financialHealth': '\u0935\u093f\u0924\u094d\u0924\u0940\u092f \u0938\u094d\u0935\u093e\u0938\u094d\u0925\u094d\u092f',
+                'sections.patrimonial': '\u092c\u0948\u0932\u0947\u0902\u0938 \u0936\u0940\u091f \u0938\u0902\u0915\u0947\u0924\u0915', 'sections.operational': '\u0938\u0902\u091a\u093e\u0932\u0928 \u092a\u094d\u0930\u0926\u0930\u094d\u0936\u0928',
+                'sections.efficiency': '\u0938\u0902\u091a\u093e\u0932\u0928 \u0926\u0915\u094d\u0937\u0924\u093e',
+                'cards.revenueVal': '\u0930\u093e\u091c\u0938\u094d\u0935 \u092e\u0942\u0932\u094d\u092f\u093e\u0902\u0915\u0928', 'cards.ebitdaVal': 'EBITDA \u092e\u0942\u0932\u094d\u092f\u093e\u0902\u0915\u0928', 'cards.profitVal': '\u0932\u093e\u092d \u092e\u0942\u0932\u094d\u092f\u093e\u0902\u0915\u0928',
+                'cards.revenueMultiple': '\u0930\u093e\u091c\u0938\u094d\u0935 \u0917\u0941\u0923\u0915', 'cards.ebitdaMultiple': 'EBITDA \u0917\u0941\u0923\u0915', 'cards.profitMultiple': '\u0936\u0941\u0926\u094d\u0927 \u0932\u093e\u092d \u0917\u0941\u0923\u0915',
+                'cards.ebitdaMargin': 'EBITDA \u092e\u093e\u0930\u094d\u091c\u093f\u0928', 'cards.ebitdaOverRevenue': 'EBITDA / \u0930\u093e\u091c\u0938\u094d\u0935',
+                'cards.netMargin': '\u0936\u0941\u0926\u094d\u0927 \u092e\u093e\u0930\u094d\u091c\u093f\u0928', 'cards.profitOverRevenue': '\u0932\u093e\u092d / \u0930\u093e\u091c\u0938\u094d\u0935',
+                'cards.roe': 'ROE', 'cards.returnOnEquity': '\u0907\u0915\u094d\u0935\u093f\u091f\u0940 \u092a\u0930 \u0930\u093f\u091f\u0930\u094d\u0928',
+                'cards.netWorth': '\u0928\u093f\u0935\u0932 \u0938\u0902\u092a\u0924\u094d\u0924\u093f', 'cards.assetsMinusLiabilities': '\u0938\u0902\u092a\u0924\u094d\u0924\u093f \u092e\u093e\u0907\u0928\u0938 \u0926\u0947\u0928\u0926\u093e\u0930\u093f\u092f\u093e\u0902',
+                'cards.enterpriseValue': 'Enterprise Value', 'cards.totalOpValue': '\u0915\u0941\u0932 \u0938\u0902\u091a\u093e\u0932\u0928 \u092e\u0942\u0932\u094d\u092f',
+                'cards.debtRatio': '\u0915\u0930\u094d\u091c \u0905\u0928\u0941\u092a\u093e\u0924', 'cards.debtOverAssets': '\u0915\u0930\u094d\u091c / \u0915\u0941\u0932 \u0938\u0902\u092a\u0924\u094d\u0924\u093f',
+                'cards.revenuePerEmployee': '\u0930\u093e\u091c\u0938\u094d\u0935 / \u0915\u0930\u094d\u092e\u091a\u093e\u0930\u0940', 'cards.teamProductivity': '\u091f\u0940\u092e \u0909\u0924\u094d\u092a\u093e\u0926\u0915\u0924\u093e',
+                'cards.ltv': '\u0917\u094d\u0930\u093e\u0939\u0915 LTV', 'cards.clientValue': '\u092a\u094d\u0930\u0924\u093f \u0917\u094d\u0930\u093e\u0939\u0915 \u092e\u0942\u0932\u094d\u092f',
+                'cards.adjustmentFactor': '\u0938\u092e\u093e\u092f\u094b\u091c\u0928 \u0915\u093e\u0930\u0915', 'cards.growthPosition': '\u0935\u0943\u0926\u094d\u0927\u093f + \u0938\u094d\u0925\u093f\u0924\u093f',
+                'cards.inventoryTurnover': '\u0907\u0928\u094d\u0935\u0947\u0902\u091f\u0930\u0940 \u091f\u0930\u094d\u0928\u0913\u0935\u0930', 'cards.timesPerYear': '\u092a\u094d\u0930\u0924\u093f \u0935\u0930\u094d\u0937',
+                'cards.workingCapitalLabel': '\u0915\u093e\u0930\u094d\u092f\u0936\u0940\u0932 \u092a\u0942\u0902\u091c\u0940', 'cards.opLiquidity': '\u0938\u0902\u091a\u093e\u0932\u0928 \u0924\u0930\u0932\u0924\u093e',
+                'cards.cashCycleLabel': '\u0928\u0915\u0926 \u091a\u0915\u094d\u0930', 'cards.daysToConvert': '\u0930\u0942\u092a\u093e\u0902\u0924\u0930\u0923 \u0915\u0947 \u0926\u093f\u0928',
+                'efficiency.low': '\u0928\u093f\u092e\u094d\u0928', 'efficiency.high': '\u0909\u091a\u094d\u091a', 'efficiency.fast': '\u0924\u0947\u091c\u093c', 'efficiency.slow': '\u0927\u0940\u092e\u093e',
+                'perf.above': '\u0914\u0938\u0924 \u0938\u0947 \u090a\u092a\u0930', 'perf.average': '\u0914\u0938\u0924', 'perf.below': '\u0914\u0938\u0924 \u0938\u0947 \u0928\u0940\u091a\u0947',
+                'paywall.title': '\u092a\u0942\u0930\u094d\u0923 \u092e\u0942\u0932\u094d\u092f\u093e\u0902\u0915\u0928 \u0930\u093f\u092a\u094b\u0930\u094d\u091f',
+                'paywall.subtitle': '15 \u0938\u0902\u0915\u0947\u0924\u0915\u094b\u0902, \u0928\u093f\u0926\u093e\u0928 \u0914\u0930 PDF \u0915\u0947 \u0938\u093e\u0925 \u0935\u093f\u0938\u094d\u0924\u0943\u0924 \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923',
+                'paywall.f1': '\u0928\u093f\u0935\u0947\u0936 \u0915\u094b\u0937\u094b\u0902 \u0926\u094d\u0935\u093e\u0930\u093e \u0909\u092a\u092f\u094b\u0917 \u0915\u0940 \u091c\u093e\u0928\u0947 \u0935\u093e\u0932\u0940 15 \u092e\u0942\u0932\u094d\u092f\u093e\u0902\u0915\u0928 \u092e\u0947\u091f\u094d\u0930\u093f\u0915\u094d\u0938',
+                'paywall.f2': '\u0906\u092a\u0915\u0947 \u0915\u094d\u0937\u0947\u0924\u094d\u0930 \u0915\u0947 \u0935\u093f\u0936\u0947\u0937 \u092c\u0947\u0902\u091a\u092e\u093e\u0930\u094d\u0915 (\u0935\u093e\u0938\u094d\u0924\u0935\u093f\u0915 M&A \u0921\u0947\u091f\u093e)',
+                'paywall.f3': '\u092a\u0947\u0936\u0947\u0935\u0930 PDF \u0930\u093f\u092a\u094b\u0930\u094d\u091f \u2014 \u0928\u093f\u0935\u0947\u0936\u0915\u094b\u0902 \u0915\u0947 \u0932\u093f\u090f \u0924\u0948\u092f\u093e\u0930',
+                'paywall.f4': '30 \u0926\u093f\u0928\u094b\u0902 \u0915\u0947 \u0932\u093f\u090f \u0905\u0938\u0940\u092e\u093f\u0924 \u092a\u0939\u0941\u0901\u091a \u2014 \u0915\u092d\u0940 \u092d\u0940 \u092a\u0941\u0928\u0930\u094d\u0917\u0923\u0928\u093e \u0915\u0930\u0947\u0902',
+                'paywall.f5': '\u092c\u094b\u0928\u0938: \u0921\u093f\u091c\u093f\u091f\u0932 \u092e\u093e\u0930\u094d\u0915\u0947\u091f\u093f\u0902\u0917 \u0911\u0921\u093f\u091f 0-10 \u0938\u094d\u0915\u094b\u0930 \u0914\u0930 \u0915\u093e\u0930\u094d\u092f \u092f\u094b\u091c\u0928\u093e',
+                'paywall.button': '\u0930\u093f\u092a\u094b\u0930\u094d\u091f \u090f\u0915\u094d\u0938\u0947\u0938 \u0915\u0930\u0947\u0902',
+                'paywall.methodology': '2,000+ \u0915\u0902\u092a\u0928\u093f\u092f\u094b\u0902 \u0926\u094d\u0935\u093e\u0930\u093e \u092e\u093e\u0928\u094d\u092f \u092a\u0926\u094d\u0927\u0924\u093f',
+                'cta.text': '15 \u0938\u0902\u0915\u0947\u0924\u0915\u094b\u0902 \u0915\u0947 \u0938\u093e\u0925 \u092a\u0942\u0930\u094d\u0923 \u0930\u093f\u092a\u094b\u0930\u094d\u091f \u0905\u0928\u0932\u0949\u0915 \u0915\u0930\u0947\u0902 +',
+                'cta.bonus': '\u092c\u094b\u0928\u0938 MKT \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923',
+                'cta.button': '\u092a\u0942\u0930\u094d\u0923 \u0930\u093f\u092a\u094b\u0930\u094d\u091f \u090f\u0915\u094d\u0938\u0947\u0938 \u0915\u0930\u0947\u0902',
+                'cta.methods': 'PayPal \u00b7 Credit Card \u00b7 Instant access',
+                'diagnostic.title': '\uD83D\uDD0D \u0938\u093e\u092e\u093e\u0928\u094d\u092f \u0928\u093f\u0926\u093e\u0928',
+                'diagnostic.generatePdf': '\uD83D\uDCC4 PDF \u0930\u093f\u092a\u094b\u0930\u094d\u091f \u092c\u0928\u093e\u090f\u0902', 'diagnostic.share': '\uD83D\uDCE4 \u0938\u093e\u091d\u093e \u0915\u0930\u0947\u0902',
+                'footer.line1': 'Valuation Pro \u00b7 \u0935\u093e\u0938\u094d\u0924\u0935\u093f\u0915 M&A \u0932\u0947\u0928\u0926\u0947\u0928 \u092a\u0930 \u0906\u0927\u093e\u0930\u093f\u0924 \u092a\u0926\u094d\u0927\u0924\u093f \u00b7 \u00a9 2026',
+                'footer.line2': '\u0938\u093e\u0930\u094d\u0935\u091c\u0928\u093f\u0915 \u0938\u094d\u0930\u094b\u0924\u094b\u0902 \u0938\u0947 \u0938\u0947\u0915\u094d\u091f\u0930 \u0917\u0941\u0923\u0915 (PwC, KPMG, EY) \u00b7 \u0938\u093e\u0902\u0915\u0947\u0924\u093f\u0915 \u0905\u0928\u0941\u092e\u093e\u0928',
+                'toast.unlocked': '\u0930\u093f\u092a\u094b\u0930\u094d\u091f \u0938\u092b\u0932\u0924\u093e\u092a\u0942\u0930\u094d\u0935\u0915 \u0905\u0928\u0932\u0949\u0915!',
+                'share.text': '\u092e\u0948\u0902\u0928\u0947 \u0905\u092d\u0940 \u0905\u092a\u0928\u0940 \u0915\u0902\u092a\u0928\u0940 \u0915\u093e \u092e\u0942\u0932\u094d\u092f \u0917\u0923\u0928\u093e \u0915\u093f\u092f\u093e!\n\n\u0905\u0928\u0941\u092e\u093e\u0928\u093f\u0924 \u092e\u0942\u0932\u094d\u092f: {value}\n\nValuation Pro \u0915\u0948\u0932\u0915\u0941\u0932\u0947\u091f\u0930 \u0915\u093e \u0909\u092a\u092f\u094b\u0917 \u0915\u0930\u0947\u0902\n\n#valuation #business',
+                'share.title': '\u092e\u0942\u0932\u094d\u092f\u093e\u0902\u0915\u0928 \u092a\u0930\u093f\u0923\u093e\u092e',
+                'share.copied': '\u092a\u0930\u093f\u0923\u093e\u092e \u0915\u094d\u0932\u093f\u092a\u092c\u094b\u0930\u094d\u0921 \u092a\u0930 \u0915\u0949\u092a\u0940 \u0939\u094b \u0917\u092f\u093e! \u0905\u092a\u0928\u0947 \u0938\u094b\u0936\u0932 \u092e\u0940\u0921\u093f\u092f\u093e \u092a\u0930 \u092a\u0947\u0938\u094d\u091f \u0915\u0930\u0947\u0902\u0964',
+                'pdf.title': '\u092e\u0947\u0930\u0940 \u0915\u0902\u092a\u0928\u0940 \u0915\u0940 \u0915\u0940\u092e\u0924 \u0915\u094d\u092f\u093e \u0939\u0948?',
+                'pdf.date': '\u0924\u093f\u0925\u093f:', 'pdf.company': '\u0915\u0902\u092a\u0928\u0940:', 'pdf.sector': '\u0915\u094d\u0937\u0947\u0924\u094d\u0930:',
+                'pdf.methodology': '\u092a\u0926\u094d\u0927\u0924\u093f:', 'pdf.results': '\u092a\u0942\u0930\u094d\u0923 \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923:', 'pdf.estimated': '\u0905\u0928\u0941\u092e\u093e\u0928\u093f\u0924 \u092e\u0942\u0932\u094d\u092f:',
+                'pdf.range': '\u0938\u0940\u092e\u093e:', 'pdf.diagnostic': '\u0938\u093e\u092e\u093e\u0928\u094d\u092f \u0928\u093f\u0926\u093e\u0928:',
+                'pdf.methLine1': 'Multiples based on real M&A transactions',
+                'pdf.methLine2': 'Illiquidity discount applied (private company)',
+                'pdf.methLine3': 'Size adjustment: factor {v}x applied',
+                'pdf.methLine4': 'Profitability adjustment: factor {v}x',
+                'pdf.methLine5': 'Adjustments for debt, growth and market position',
+                'pdf.methLine6': 'Sources: PwC, KPMG, EY - private SME M&A transactions',
+                'pdf.footer1': 'Valuation Pro - Methodology based on real M&A transactions',
+                'pdf.footer2': 'Sector multiples from public sources (PwC, KPMG, EY)',
+                'diag.ebitdaAbove': 'EBITDA margin of {v}% is above the {s} sector median ({b}%)',
+                'diag.ebitdaAvg': 'EBITDA margin of {v}% is in line with the {s} sector median ({b}%)',
+                'diag.ebitdaBelow': 'EBITDA margin of {v}% is below the {s} sector median ({b}%) - optimize costs',
+                'diag.debtLow': 'Debt ratio of {v}% is below the sector average ({b}%) - healthy structure',
+                'diag.debtMed': 'Debt ratio of {v}% is near the sector average ({b}%) - monitor leverage',
+                'diag.debtHigh': 'Debt ratio of {v}% is above the sector average ({b}%) - significant financial risk',
+                'diag.roeHigh': 'Attractive return on equity for investors',
+                'diag.roeMed': 'Average ROE - seek greater capital efficiency',
+                'diag.roeLow': 'Low ROE - shareholder capital generating poor returns',
+                'diag.growthPos': 'Growing company - favorable market multiples',
+                'diag.growthNeg': 'Declining revenue - review business model',
+                'diag.marginHigh': 'Net margin above expectations - excellent efficiency',
+                'diag.invHigh': 'Efficient inventory turnover - good management',
+                'diag.invLow': 'Low inventory turnover - capital stuck in inventory',
+                'diag.sizeAdj': 'Size adjustment applied: -{v}% (smaller companies have lower M&A multiples)',
+                'diag.illiquidity': 'Illiquidity discount of {v}% applied - private companies worth less than listed equivalents',
+                'mkt.title': '\uD83D\uDCF1 Digital Marketing Analysis (Bonus)',
+                'mkt.scoreTitle': 'Marketing Score', 'mkt.scoreLabel': 'Professional MKT assessment',
+                'mkt.diagTitle': 'Marketing Diagnostic',
+                'mkt.strongPoint': 'Strength:', 'mkt.opportunity': 'Biggest opportunity:',
+                'mkt.recommendation': 'Key recommendation:',
+                'mkt.benchmarkNote': 'Analysis based on digital marketing benchmarks for {s} ({y}).',
+                'mkt.labels': ['Critical','Very weak','Weak','Below average','Fair','Average','Above average','Good','Very good','Excellent','Reference'],
+                'mkt.ig': [
+                    { name: 'Platform presence', tip: 'Having an Instagram profile is essential for visibility' },
+                    { name: 'Professional bio', tip: 'Optimize your bio with a CTA, link and value proposition' },
+                    { name: 'Posting consistency', tip: 'Post at least 3-4x per week' },
+                    { name: 'Stories strategy', tip: 'Use stories daily with polls and CTAs' },
+                    { name: 'Reels & short video', tip: 'Reels get 2x more reach than static posts' },
+                    { name: 'Sales funnel', tip: 'Create a funnel: free content > lead magnet > offer' },
+                    { name: 'Social proof', tip: 'Share testimonials and case studies' },
+                    { name: 'Optimized link in bio', tip: 'Use Linktree with tracked links (UTM)' }
+                ],
+                'mkt.tt': [
+                    { name: 'Platform presence', tip: 'TikTok is the fastest growing organic channel' },
+                    { name: 'Optimized profile', tip: 'Clear bio, link and CTA on profile' },
+                    { name: 'Posting frequency', tip: 'Post 1-2 videos per day' },
+                    { name: 'Content format', tip: 'Educational videos perform best for B2B' },
+                    { name: 'Trend usage', tip: 'Adapt viral trends to your niche' },
+                    { name: 'Engagement', tip: 'Reply to all comments' },
+                    { name: 'Sales conversion', tip: 'Include CTAs in videos' },
+                    { name: 'Cross-posting', tip: 'Repost best TikToks to Reels and Shorts' }
+                ],
+                'mkt.web': [
+                    { name: 'Online presence', tip: 'Having your own website conveys credibility' },
+                    { name: 'SSL / Security', tip: 'Sites without HTTPS lose ranking and trust' },
+                    { name: 'Basic SEO', tip: 'Optimize titles and meta descriptions' },
+                    { name: 'Load speed', tip: 'Sites taking 3s+ lose 53% of mobile visitors' },
+                    { name: 'Mobile responsive', tip: '70%+ of traffic comes from mobile' },
+                    { name: 'CTA & conversion', tip: 'Have clear CTAs on every page' },
+                    { name: 'Google My Business', tip: 'Register on Google Maps for local searches' },
+                    { name: 'Analytics installed', tip: 'Without data you don\'t know what works' }
+                ],
+                'sector.tecnologia': '\u091f\u0947\u0915\u094d\u0928\u094b\u0932\u0949\u091c\u0940', 'sector.saude': '\u0938\u094d\u0935\u093e\u0938\u094d\u0925\u094d\u092f \u0938\u0947\u0935\u093e', 'sector.educacao': '\u0936\u093f\u0915\u094d\u0937\u093e',
+                'sector.alimentacao': '\u0916\u093e\u0926\u094d\u092f \u0914\u0930 \u092a\u0947\u092f', 'sector.varejo': '\u0916\u0941\u0926\u0930\u093e', 'sector.servicos': '\u0938\u0947\u0935\u093e\u090f\u0902',
+                'sector.construcao': '\u0928\u093f\u0930\u094d\u092e\u093e\u0923', 'sector.industria': '\u0935\u093f\u0928\u093f\u0930\u094d\u092e\u093e\u0923', 'sector.agronegocio': '\u0915\u0943\u0937\u093f \u0935\u094d\u092f\u0935\u0938\u093e\u092f',
+                'sector.energia': '\u090a\u0930\u094d\u091c\u093e', 'sector.logistica': '\u0932\u0949\u091c\u093f\u0938\u094d\u091f\u093f\u0915\u094d\u0938', 'sector.financeiro': '\u0935\u093f\u0924\u094d\u0924\u0940\u092f \u0938\u0947\u0935\u093e\u090f\u0902',
+                'sector.franquias': '\u092b\u094d\u0930\u0948\u0902\u091a\u093e\u0907\u091c\u0940', 'sector.beleza': '\u0938\u094c\u0902\u0926\u0930\u094d\u092f \u0914\u0930 \u0935\u0947\u0932\u0928\u0947\u0938',
+                'sector.ecommerce': '\u0908-\u0915\u0949\u092e\u0930\u094d\u0938 / \u092e\u093e\u0930\u094d\u0915\u0947\u091f\u092a\u094d\u0932\u0947\u0938', 'sector.imobiliario': '\u0930\u093f\u092f\u0932 \u090f\u0938\u094d\u091f\u0947\u091f', 'sector.consultoria': '\u092a\u0930\u093e\u092e\u0930\u094d\u0936',
+                'common.anonymous': 'Anonymous Company', 'common.na': 'N/A', 'common.days': '\u0926\u093f\u0928'
+            }
+        };
+
+        // ===== i18n FUNCTIONS =====
+        function t(key, params) {
+            var val = (translations[currentLang] && translations[currentLang][key]) || (translations['pt'] && translations['pt'][key]) || key;
+            if (params && typeof val === 'string') {
+                Object.keys(params).forEach(function(k) { val = val.replace(new RegExp('\\{' + k + '\\}', 'g'), params[k]); });
+            }
+            return val;
+        }
+
+        function detectLanguage() {
+            // 1. URL param ?lang=xx
+            var params = new URLSearchParams(window.location.search);
+            var urlLang = params.get('lang');
+            if (urlLang && translations[urlLang]) return urlLang;
+            // 2. localStorage
+            var saved = localStorage.getItem('vp_lang');
+            if (saved && translations[saved]) return saved;
+            // 3. navigator.language
+            var nav = (navigator.language || '').toLowerCase();
+            if (nav.startsWith('pt')) return 'pt';
+            if (nav.startsWith('es')) return 'es';
+            if (nav.startsWith('fr')) return 'fr';
+            if (nav.startsWith('hi')) return 'hi';
+            if (nav.startsWith('en')) return 'en';
+            return 'pt';
+        }
+
+        function setLanguage(lang) {
+            if (!translations[lang]) return;
+            currentLang = lang;
+            localStorage.setItem('vp_lang', lang);
+            document.documentElement.lang = regionConfig[lang].locale;
+            applyTranslations();
+            // Update active button
+            document.querySelectorAll('.lang-btn').forEach(function(btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+            });
+            // Re-display results if visible
+            if (document.getElementById('resultContainer').classList.contains('active') && currentResults.adjustedValuation) {
+                displayResults();
+            }
+        }
+
+        function formatCurrencyValue(value) {
+            var cfg = regionConfig[currentLang];
+            return value.toLocaleString(cfg.locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function getCurrencyPrefix() {
+            return regionConfig[currentLang].symbol + ' ';
+        }
+
+        function applyTranslations() {
+            var cfg = regionConfig[currentLang];
+
+            // Header
+            var el;
+            el = document.getElementById('headerTitle'); if (el) el.textContent = t('header.title');
+            el = document.getElementById('headerSubtitle'); if (el) el.textContent = t('header.subtitle');
+
+            // Step labels
+            for (var i = 1; i <= 4; i++) {
+                el = document.getElementById('stepLabel' + i); if (el) el.textContent = t('steps.' + i);
+            }
+
+            // Step titles/subtitles
+            var stepTitles = document.querySelectorAll('.step-title');
+            var stepSubtitles = document.querySelectorAll('.step-subtitle');
+            var stepKeys = ['step1', 'step2', 'step3'];
+            stepTitles.forEach(function(st, idx) { if (stepKeys[idx]) st.textContent = t(stepKeys[idx] + '.title'); });
+            stepSubtitles.forEach(function(ss, idx) { if (stepKeys[idx]) ss.textContent = t(stepKeys[idx] + '.subtitle'); });
+
+            // Privacy notice
+            var privacy = document.querySelector('.privacy-notice');
+            if (privacy) privacy.textContent = t('step1.privacy');
+
+            // Form labels by field ID mapping
+            var labelMap = {
+                'companyName': 'form.companyName', 'mktChannel': 'form.mktChannel', 'sector': 'form.sector',
+                'employees': 'form.employees', 'marketPosition': 'form.marketPosition', 'growth': 'form.growth',
+                'revenue': 'form.revenue', 'ebitda': 'form.ebitda', 'netIncome': 'form.netIncome',
+                'assets': 'form.assets', 'debt': 'form.debt',
+                'workingCapital': 'form.workingCapital', 'averageTicket': 'form.averageTicket',
+                'customers': 'form.customers', 'cashCycle': 'form.cashCycle', 'inventory': 'form.inventory'
+            };
+
+            Object.keys(labelMap).forEach(function(fieldId) {
+                var field = document.getElementById(fieldId);
+                if (!field) return;
+                // Update label text (preserve tooltip)
+                var label = field.closest('.form-group') ? field.closest('.form-group').querySelector('label') : null;
+                if (label) {
+                    var tooltip = label.querySelector('.tooltip');
+                    var currencyLabel = t(labelMap[fieldId]);
+                    // Add currency symbol for financial fields
+                    var financialFields = ['revenue', 'ebitda', 'netIncome', 'assets', 'debt', 'workingCapital', 'averageTicket', 'inventory'];
+                    if (financialFields.indexOf(fieldId) > -1) {
+                        currencyLabel += ' (' + cfg.symbol + ')';
+                    }
+                    label.childNodes[0].textContent = currencyLabel + ' ';
+                    // Update tooltip text
+                    if (tooltip) {
+                        var tipText = tooltip.querySelector('.tooltiptext');
+                        if (tipText) tipText.textContent = t(labelMap[fieldId] + 'Tip');
+                    }
+                }
+                // Update placeholder
+                var phKey = labelMap[fieldId] + 'Placeholder';
+                var ph = t(phKey);
+                if (ph !== phKey && field.tagName !== 'SELECT') field.placeholder = ph;
+            });
+
+            // Sector select options
+            var sectorSelect = document.getElementById('sector');
+            if (sectorSelect) {
+                var currentVal = sectorSelect.value;
+                var sectorKeys = ['tecnologia','saude','educacao','alimentacao','varejo','servicos','construcao','industria','agronegocio','energia','logistica','financeiro','franquias','beleza','ecommerce','imobiliario','consultoria'];
+                sectorSelect.innerHTML = '<option value="">' + t('form.sectorPlaceholder') + '</option>';
+                sectorKeys.forEach(function(sk) {
+                    var opt = document.createElement('option');
+                    opt.value = sk;
+                    opt.textContent = t('sector.' + sk);
+                    if (sk === currentVal) opt.selected = true;
+                    sectorSelect.appendChild(opt);
+                });
+            }
+
+            // Market position select
+            var mpSelect = document.getElementById('marketPosition');
+            if (mpSelect) {
+                var mpVal = mpSelect.value;
+                var mpKeys = ['lider', 'forte', 'media', 'emergente'];
+                mpSelect.innerHTML = '<option value="">' + t('form.marketPositionPlaceholder') + '</option>';
+                mpKeys.forEach(function(mk) {
+                    var opt = document.createElement('option');
+                    opt.value = mk;
+                    opt.textContent = t('form.mp.' + mk);
+                    if (mk === mpVal) opt.selected = true;
+                    mpSelect.appendChild(opt);
+                });
+            }
+
+            // Growth select
+            var grSelect = document.getElementById('growth');
+            if (grSelect) {
+                var grVal = grSelect.value;
+                var grKeys = ['alto', 'medio', 'baixo', 'negativo'];
+                grSelect.innerHTML = '<option value="">' + t('form.growthPlaceholder') + '</option>';
+                grKeys.forEach(function(gk) {
+                    var opt = document.createElement('option');
+                    opt.value = gk;
+                    opt.textContent = t('form.gr.' + gk);
+                    if (gk === grVal) opt.selected = true;
+                    grSelect.appendChild(opt);
+                });
+            }
+
+            // Navigation buttons
+            document.querySelectorAll('.btn-next').forEach(function(btn) { btn.innerHTML = t('nav.continue'); });
+            document.querySelectorAll('.btn-prev').forEach(function(btn) { btn.innerHTML = t('nav.back'); });
+            var submitBtn = document.querySelector('.btn-submit');
+            if (submitBtn) submitBtn.innerHTML = t('nav.calculate');
+
+            // Loading
+            var loadingPs = document.querySelectorAll('#loading p');
+            if (loadingPs[0]) loadingPs[0].textContent = t('loading.processing');
+            if (loadingPs[1]) loadingPs[1].textContent = t('loading.applying');
+
+            // Result labels
+            var resultLabel = document.querySelector('.result-label-main');
+            if (resultLabel) resultLabel.textContent = t('results.estimatedValue');
+
+            // Free action buttons
+            var shareBtn = document.querySelectorAll('.free-actions .btn-share');
+            if (shareBtn[0]) shareBtn[0].innerHTML = t('results.share');
+            if (shareBtn[1]) shareBtn[1].innerHTML = t('results.print');
+
+            // Section titles
+            var sectionTitles = document.querySelectorAll('.dash-section-title');
+            var sectionKeys = ['sections.methods', 'sections.financialHealth', 'sections.patrimonial', 'sections.operational', 'sections.efficiency'];
+            sectionTitles.forEach(function(st, idx) {
+                if (sectionKeys[idx] && !st.id) st.textContent = t(sectionKeys[idx]);
+            });
+
+            // Card titles and labels
+            var cardMappings = [
+                // Methods
+                { titleSel: '#revenueValue', titleKey: 'cards.revenueVal', labelKey: 'cards.revenueMultiple' },
+                { titleSel: '#ebitdaValue', titleKey: 'cards.ebitdaVal', labelKey: 'cards.ebitdaMultiple' },
+                { titleSel: '#netIncomeValue', titleKey: 'cards.profitVal', labelKey: 'cards.profitMultiple' },
+            ];
+            cardMappings.forEach(function(cm) {
+                var valEl = document.querySelector(cm.titleSel);
+                if (valEl) {
+                    var card = valEl.closest('.dash-card');
+                    if (card) {
+                        var ct = card.querySelector('.card-title'); if (ct) ct.textContent = t(cm.titleKey);
+                        var cl = card.querySelector('.card-label'); if (cl) cl.textContent = t(cm.labelKey);
+                    }
+                }
+            });
+
+            // Financial health cards
+            var fhCards = [
+                { id: 'ebitdaMarginValue', title: 'cards.ebitdaMargin', label: 'cards.ebitdaOverRevenue' },
+                { id: 'netMarginValue', title: 'cards.netMargin', label: 'cards.profitOverRevenue' },
+                { id: 'roeValue', title: 'cards.roe', label: 'cards.returnOnEquity' }
+            ];
+            fhCards.forEach(function(fc) {
+                var valEl = document.getElementById(fc.id);
+                if (valEl) {
+                    var card = valEl.closest('.dash-card');
+                    if (card) {
+                        var ct = card.querySelector('.card-title'); if (ct) ct.textContent = t(fc.title);
+                        var cl = card.querySelector('.card-label'); if (cl) cl.textContent = t(fc.label);
+                    }
+                }
+            });
+
+            // Patrimonial cards
+            var pCards = [
+                { id: 'netWorthValue', title: 'cards.netWorth', label: 'cards.assetsMinusLiabilities' },
+                { id: 'enterpriseValue', title: 'cards.enterpriseValue', label: 'cards.totalOpValue' },
+                { id: 'debtRatioValue', title: 'cards.debtRatio', label: 'cards.debtOverAssets' }
+            ];
+            pCards.forEach(function(pc) {
+                var valEl = document.getElementById(pc.id);
+                if (valEl) {
+                    var card = valEl.closest('.dash-card');
+                    if (card) {
+                        var ct = card.querySelector('.card-title'); if (ct) ct.textContent = t(pc.title);
+                        var cl = card.querySelector('.card-label'); if (cl) cl.textContent = t(pc.label);
+                    }
+                }
+            });
+
+            // Operational cards
+            var oCards = [
+                { id: 'revenuePerEmployeeValue', title: 'cards.revenuePerEmployee', label: 'cards.teamProductivity' },
+                { id: 'ltvValue', title: 'cards.ltv', label: 'cards.clientValue' },
+                { id: 'adjustmentFactorValue', title: 'cards.adjustmentFactor', label: 'cards.growthPosition' }
+            ];
+            oCards.forEach(function(oc) {
+                var valEl = document.getElementById(oc.id);
+                if (valEl) {
+                    var card = valEl.closest('.dash-card');
+                    if (card) {
+                        var ct = card.querySelector('.card-title'); if (ct) ct.textContent = t(oc.title);
+                        var cl = card.querySelector('.card-label'); if (cl) cl.textContent = t(oc.label);
+                    }
+                }
+            });
+
+            // Efficiency cards
+            var eCards = [
+                { id: 'inventoryTurnoverValue', title: 'cards.inventoryTurnover', label: 'cards.timesPerYear' },
+                { id: 'workingCapitalValue', title: 'cards.workingCapitalLabel', label: 'cards.opLiquidity' },
+                { id: 'cashCycleValue', title: 'cards.cashCycleLabel', label: 'cards.daysToConvert' }
+            ];
+            eCards.forEach(function(ec) {
+                var valEl = document.getElementById(ec.id);
+                if (valEl) {
+                    var card = valEl.closest('.dash-card');
+                    if (card) {
+                        var ct = card.querySelector('.card-title'); if (ct) ct.textContent = t(ec.title);
+                        var cl = card.querySelector('.card-label'); if (cl) cl.textContent = t(ec.label);
+                    }
+                }
+            });
+
+            // Efficiency bar labels
+            var invBarLabels = document.querySelector('#inventoryBarContainer .h-bar-label');
+            if (invBarLabels) { var spans = invBarLabels.querySelectorAll('span'); if (spans[0]) spans[0].textContent = t('efficiency.low'); if (spans[1]) spans[1].textContent = t('efficiency.high'); }
+            var cashBarLabels = document.querySelector('#cashCycleBarContainer .h-bar-label');
+            if (cashBarLabels) { var spans2 = cashBarLabels.querySelectorAll('span'); if (spans2[0]) spans2[0].textContent = t('efficiency.fast'); if (spans2[1]) spans2[1].textContent = t('efficiency.slow'); }
+
+            // Paywall
+            var pwTitle = document.querySelector('.paywall-card h3');
+            if (pwTitle) pwTitle.textContent = t('paywall.title');
+            var pwSub = document.querySelector('.paywall-card .subtitle');
+            if (pwSub) pwSub.textContent = t('paywall.subtitle');
+            var pwFeatures = document.querySelectorAll('.paywall-features li');
+            ['paywall.f1','paywall.f2','paywall.f3','paywall.f4','paywall.f5'].forEach(function(fk, idx) {
+                if (pwFeatures[idx]) {
+                    var check = pwFeatures[idx].querySelector('.check');
+                    var checkHTML = check ? check.outerHTML : '';
+                    var strong = fk === 'paywall.f5' ? '<strong>' + t(fk) + '</strong>' : t(fk);
+                    pwFeatures[idx].innerHTML = checkHTML + ' ' + (fk === 'paywall.f5' ? t(fk) : t(fk));
+                }
+            });
+            var pwBtn = document.querySelector('.paywall-overlay .btn-pay');
+            if (pwBtn) pwBtn.textContent = t('paywall.button') + ' \u2014 ' + cfg.price;
+            var pwMethods = document.querySelector('.paywall-overlay .btn-pay + div');
+            if (pwMethods) pwMethods.textContent = cfg.paymentMethods;
+            var pwMeth2 = document.querySelector('.paywall-overlay .btn-pay + div + div');
+            if (pwMeth2) pwMeth2.textContent = t('paywall.methodology');
+
+            // CTA inline
+            var ctaDiv = document.getElementById('ctaInline');
+            if (ctaDiv) {
+                var ctaText = ctaDiv.querySelector('div > div:first-child');
+                if (ctaText) ctaText.innerHTML = t('cta.text') + ' <strong style="color:#D4A853;">' + t('cta.bonus') + '</strong>';
+                var ctaBtn = ctaDiv.querySelector('.btn-pay');
+                if (ctaBtn) ctaBtn.textContent = t('cta.button') + ' \u2014 ' + cfg.price;
+                var ctaMethods = ctaDiv.querySelector('.btn-pay + div');
+                if (ctaMethods) ctaMethods.textContent = t('cta.methods');
+            }
+
+            // Diagnostic
+            var diagTitle = document.querySelector('.diag-title');
+            if (diagTitle) diagTitle.textContent = t('diagnostic.title');
+            var diagBtns = document.querySelectorAll('.btn-diag');
+            if (diagBtns[0]) diagBtns[0].innerHTML = t('diagnostic.generatePdf');
+            if (diagBtns[1]) diagBtns[1].innerHTML = t('diagnostic.share');
+
+            // MKT section title
+            var mktTitle = document.getElementById('mktAnalysisSection');
+            if (mktTitle) mktTitle.textContent = t('mkt.title');
+
+            // Footer
+            var footer = document.querySelector('body > div:last-of-type');
+            if (footer && footer.style && footer.style.textAlign === 'center') {
+                footer.innerHTML = t('footer.line1') + '<br>' + t('footer.line2');
+            }
+
+            // Document title
+            document.title = t('header.title') + ' | Valuation Pro';
+        }
+
         // Multiplos de valuation por setor (mercado brasileiro 2024-2026 - PMEs privadas (fonte: transacoes M&A, PwC, KPMG, EY))
         const sectorMultiples = {
             'tecnologia': { revenue: 2.2, ebitda: 8.0, netIncome: 12.0 },
@@ -2181,7 +3419,7 @@
 
             setTimeout(() => {
                 const formData = {
-                    companyName: document.getElementById('companyName').value || 'Empresa Anonima',
+                    companyName: document.getElementById('companyName').value || t('common.anonymous'),
                     sector: document.getElementById('sector').value,
                     revenue: parseCurrencyInput(document.getElementById('revenue').value),
                     ebitda: parseCurrencyInput(document.getElementById('ebitda').value),
@@ -2198,7 +3436,9 @@
                     growth: document.getElementById('growth').value
                 };
 
-                const multiples = sectorMultiples[formData.sector];
+                const baseMultiples = sectorMultiples[formData.sector];
+                var mFactor = regionConfig[currentLang].multiplesFactor;
+                const multiples = { revenue: baseMultiples.revenue * mFactor, ebitda: baseMultiples.ebitda * mFactor, netIncome: baseMultiples.netIncome * mFactor };
 
                 // Calculos base
                 const revenueValuation = formData.revenue * multiples.revenue;
@@ -2236,19 +3476,20 @@
 
                 let adjustmentFactor = 1.0;
 
-                // 1. Desconto de iliquidez (empresa privada)
-                const illiquidityDiscount = 0.80;
+                // 1. Desconto de iliquidez (empresa privada) - regional
+                const illiquidityDiscount = regionConfig[currentLang].illiquidityDiscount;
                 adjustmentFactor *= illiquidityDiscount;
 
-                // 2. Ajuste por porte (baseado na receita)
+                // 2. Ajuste por porte (baseado na receita) - thresholds regionais
+                var st = regionConfig[currentLang].sizeThresholds;
                 let sizeDiscount;
-                if (formData.revenue > 50000000) {
+                if (formData.revenue > st[0]) {
                     sizeDiscount = 1.0;
-                } else if (formData.revenue >= 10000000) {
+                } else if (formData.revenue >= st[1]) {
                     sizeDiscount = 0.90;
-                } else if (formData.revenue >= 5000000) {
+                } else if (formData.revenue >= st[2]) {
                     sizeDiscount = 0.80;
-                } else if (formData.revenue >= 1000000) {
+                } else if (formData.revenue >= st[3]) {
                     sizeDiscount = 0.70;
                 } else {
                     sizeDiscount = 0.55;
@@ -2334,12 +3575,12 @@
                     maxValuation,
                     adjustmentFactor,
                     sizeDiscount,
-                    illiquidityDiscount: 0.80,
+                    illiquidityDiscount: illiquidityDiscount,
                     profitabilityFactor,
                     debtHealthFactor,
                     sector: formData.sector,
                     growth: formData.growth,
-                    date: new Date().toLocaleDateString('pt-BR')
+                    date: new Date().toLocaleDateString(regionConfig[currentLang].locale)
                 };
 
                 displayResults();
@@ -2362,23 +3603,68 @@
 
         function displayResults() {
             const r = currentResults;
+            var sym = getCurrencyPrefix();
 
             // Company name and date
             document.getElementById('resultCompanyName').textContent = r.companyName;
-            document.getElementById('resultDate').textContent = 'Avaliacao realizada em ' + r.date;
+            document.getElementById('resultDate').textContent = t('results.datePrefix') + ' ' + r.date;
 
-            // Animated main value
-            animateValue('finalValue', r.adjustedValuation);
-            document.getElementById('valuationRange').textContent = 'R$ ' + formatCurrency(r.minValuation) + ' - R$ ' + formatCurrency(r.maxValuation);
+            // Check if already unlocked
+            var isUnlocked = localStorage.getItem('vp_unlocked');
+            if (isUnlocked) {
+                // Show full value directly
+                document.getElementById('teaserResult').style.display = 'none';
+                document.getElementById('fullValueResult').style.display = '';
+                var freeActions = document.getElementById('freeActions');
+                if (freeActions) freeActions.style.display = '';
+                animateValue('finalValue', r.adjustedValuation);
+                document.getElementById('valuationRange').textContent = sym + formatCurrency(r.minValuation) + ' - ' + sym + formatCurrency(r.maxValuation);
+                document.getElementById('rangeMinLabel').textContent = sym + formatCurrency(r.minValuation);
+                document.getElementById('rangeMaxLabel').textContent = sym + formatCurrency(r.maxValuation);
+            } else {
+                // Show teaser instead of real value
+                document.getElementById('teaserResult').style.display = '';
+                document.getElementById('fullValueResult').style.display = 'none';
 
-            // Range bar
-            document.getElementById('rangeMinLabel').textContent = 'R$ ' + formatCurrency(r.minValuation);
-            document.getElementById('rangeMaxLabel').textContent = 'R$ ' + formatCurrency(r.maxValuation);
+                // Calculate sector comparison
+                var sectorAvgEbitdaMargin = { 'tecnologia':22, 'saude':18, 'educacao':15, 'alimentacao':12, 'varejo':8, 'servicos':14, 'construcao':10, 'industria':12, 'agronegocio':14, 'energia':20, 'logistica':10, 'financeiro':25, 'franquias':15, 'beleza':12, 'ecommerce':10, 'imobiliario':18, 'consultoria':20 };
+                var avgMargin = sectorAvgEbitdaMargin[r.sector] || 15;
+                var marginDiff = r.ebitdaMargin - avgMargin;
+                var isAbove = marginDiff >= 0;
+
+                // Teaser message
+                var teaserMsg = document.getElementById('teaserMessage');
+                if (isAbove && marginDiff > 5) {
+                    teaserMsg.innerHTML = '&#127942; Parab&eacute;ns! Sua empresa tem potencial acima da m&eacute;dia do setor';
+                } else if (isAbove) {
+                    teaserMsg.innerHTML = '&#9989; Boas not&iacute;cias! Seu neg&oacute;cio est&aacute; alinhado com o mercado';
+                } else if (marginDiff > -5) {
+                    teaserMsg.innerHTML = '&#128200; Sua empresa tem espa&ccedil;o para crescer no setor';
+                } else {
+                    teaserMsg.innerHTML = '&#128161; Identificamos oportunidades de melhoria no seu valuation';
+                }
+
+                // Teaser details
+                var sectorNames = { 'tecnologia':'Tecnologia', 'saude':'Sa\u00fade', 'educacao':'Educa\u00e7\u00e3o', 'alimentacao':'Alimenta\u00e7\u00e3o', 'varejo':'Varejo', 'servicos':'Servi\u00e7os', 'construcao':'Constru\u00e7\u00e3o', 'industria':'Ind\u00fastria', 'agronegocio':'Agroneg\u00f3cio', 'energia':'Energia', 'logistica':'Log\u00edstica', 'financeiro':'Financeiro', 'franquias':'Franquias', 'beleza':'Beleza', 'ecommerce':'E-commerce', 'imobiliario':'Imobili\u00e1rio', 'consultoria':'Consultoria' };
+                var sectorName = sectorNames[r.sector] || r.sector;
+                document.getElementById('teaserDetails').innerHTML = 'Analisamos <strong>6 m&eacute;todos de valuation</strong> com m&uacute;ltiplos reais de M&A do setor de <strong>' + sectorName + '</strong> e calculamos o valor da sua empresa com base em dados do mercado brasileiro.';
+
+                // Badges
+                document.getElementById('teaserBadge1').textContent = 'Margem EBITDA: ' + r.ebitdaMargin.toFixed(1) + '%';
+                var healthLabel = r.debtRatio < 30 ? 'Endividamento Saud\u00e1vel' : r.debtRatio < 50 ? 'Endividamento Moderado' : 'Endividamento Alto';
+                document.getElementById('teaserBadge2').textContent = healthLabel;
+
+                // Populate hidden values for when unlocked later
+                document.getElementById('finalValue').textContent = sym + formatCurrency(r.adjustedValuation);
+                document.getElementById('valuationRange').textContent = sym + formatCurrency(r.minValuation) + ' - ' + sym + formatCurrency(r.maxValuation);
+                document.getElementById('rangeMinLabel').textContent = sym + formatCurrency(r.minValuation);
+                document.getElementById('rangeMaxLabel').textContent = sym + formatCurrency(r.maxValuation);
+            }
 
             // Section 1: Metodos de Avaliacao
-            document.getElementById('revenueValue').textContent = 'R$ ' + formatCurrency(r.revenueValuation);
-            document.getElementById('ebitdaValue').textContent = 'R$ ' + formatCurrency(r.ebitdaValuation);
-            document.getElementById('netIncomeValue').textContent = 'R$ ' + formatCurrency(r.netIncomeValuation);
+            document.getElementById('revenueValue').textContent = sym + formatCurrency(r.revenueValuation);
+            document.getElementById('ebitdaValue').textContent = sym + formatCurrency(r.ebitdaValuation);
+            document.getElementById('netIncomeValue').textContent = sym + formatCurrency(r.netIncomeValuation);
 
             // Section 2: Saude Financeira - circular progress
             setCircularProgress('ebitdaMarginCircle', 'ebitdaMarginValue', r.ebitdaMargin);
@@ -2386,21 +3672,21 @@
             setCircularProgress('roeCircle', 'roeValue', r.roe);
 
             // Section 3: Indicadores Patrimoniais
-            document.getElementById('netWorthValue').textContent = 'R$ ' + formatCurrency(r.netWorth);
-            document.getElementById('enterpriseValue').textContent = 'R$ ' + formatCurrency(r.enterpriseValue);
+            document.getElementById('netWorthValue').textContent = sym + formatCurrency(r.netWorth);
+            document.getElementById('enterpriseValue').textContent = sym + formatCurrency(r.enterpriseValue);
 
             // Endividamento with color coding and bar
             const debtEl = document.getElementById('debtRatioValue');
             debtEl.textContent = r.debtRatio.toFixed(1) + '%';
             const debtColor = r.debtRatio < 30 ? '#4ade80' : r.debtRatio < 50 ? '#fbbf24' : '#f87171';
-            debtEl.classList.add(r.debtRatio < 30 ? 'val-green' : r.debtRatio < 50 ? 'val-yellow' : 'val-red');
+            debtEl.className = 'card-value ' + (r.debtRatio < 30 ? 'val-green' : r.debtRatio < 50 ? 'val-yellow' : 'val-red');
             const debtBar = document.getElementById('debtBarFill');
             debtBar.style.width = Math.min(r.debtRatio, 100) + '%';
             debtBar.style.background = debtColor;
 
             // Section 4: Performance Operacional
-            document.getElementById('revenuePerEmployeeValue').textContent = 'R$ ' + formatCurrency(r.revenuePerEmployee);
-            document.getElementById('ltvValue').textContent = r.ltv > 0 ? 'R$ ' + formatCurrency(r.ltv) : 'N/A';
+            document.getElementById('revenuePerEmployeeValue').textContent = sym + formatCurrency(r.revenuePerEmployee);
+            document.getElementById('ltvValue').textContent = r.ltv > 0 ? sym + formatCurrency(r.ltv) : t('common.na');
             document.getElementById('adjustmentFactorValue').textContent = r.adjustmentFactor.toFixed(2) + 'x';
 
             // Performance tags
@@ -2409,9 +3695,9 @@
             setPerfTag('adjustTag', r.adjustmentFactor, 1.2, 1.0);
 
             // Section 5: Eficiencia Operacional
-            document.getElementById('inventoryTurnoverValue').textContent = r.inventoryTurnover > 0 ? r.inventoryTurnover.toFixed(1) + 'x' : 'N/A';
-            document.getElementById('workingCapitalValue').textContent = 'R$ ' + formatCurrency(r.workingCapitalNet);
-            document.getElementById('cashCycleValue').textContent = r.cashCycleDays > 0 ? r.cashCycleDays + ' dias' : 'N/A';
+            document.getElementById('inventoryTurnoverValue').textContent = r.inventoryTurnover > 0 ? r.inventoryTurnover.toFixed(1) + 'x' : t('common.na');
+            document.getElementById('workingCapitalValue').textContent = sym + formatCurrency(r.workingCapitalNet);
+            document.getElementById('cashCycleValue').textContent = r.cashCycleDays > 0 ? r.cashCycleDays + ' ' + t('common.days') : t('common.na');
 
             // Giro de Estoque bar (higher = better)
             if (r.inventoryTurnover > 0) {
@@ -2452,14 +3738,15 @@
                 tag.style.display = 'none';
                 return;
             }
+            tag.style.display = '';
             if (value >= highThreshold) {
-                tag.textContent = 'Acima da media';
+                tag.textContent = t('perf.above');
                 tag.className = 'perf-tag above';
             } else if (value >= lowThreshold) {
-                tag.textContent = 'Na media';
+                tag.textContent = t('perf.average');
                 tag.className = 'perf-tag average';
             } else {
-                tag.textContent = 'Abaixo da media';
+                tag.textContent = t('perf.below');
                 tag.className = 'perf-tag below';
             }
         }
@@ -2499,59 +3786,60 @@
             };
 
             const bench = sectorBenchmarks[r.sector];
-            const sectorName = sectorNames[r.sector] || r.sector;
+            const sectorName = t('sector.' + r.sector) || r.sector;
 
             // Margem EBITDA vs benchmark setorial
             if (r.ebitdaMargin > bench.medianEbitda) {
-                items.push({ icon: '\u2705', text: 'Margem EBITDA de ' + r.ebitdaMargin.toFixed(1) + '% esta acima da mediana do setor de ' + sectorName + ' (' + bench.medianEbitda + '%)' });
+                items.push({ icon: '\u2705', text: t('diag.ebitdaAbove', { v: r.ebitdaMargin.toFixed(1), s: sectorName, b: bench.medianEbitda }) });
             } else if (r.ebitdaMargin >= bench.medianEbitda * 0.8) {
-                items.push({ icon: '\u2705', text: 'Margem EBITDA de ' + r.ebitdaMargin.toFixed(1) + '% esta na media do setor de ' + sectorName + ' (' + bench.medianEbitda + '%)' });
+                items.push({ icon: '\u2705', text: t('diag.ebitdaAvg', { v: r.ebitdaMargin.toFixed(1), s: sectorName, b: bench.medianEbitda }) });
             } else {
-                items.push({ icon: '\u26A0\uFE0F', text: 'Margem EBITDA de ' + r.ebitdaMargin.toFixed(1) + '% esta abaixo da mediana do setor de ' + sectorName + ' (' + bench.medianEbitda + '%) - otimize custos operacionais' });
+                items.push({ icon: '\u26A0\uFE0F', text: t('diag.ebitdaBelow', { v: r.ebitdaMargin.toFixed(1), s: sectorName, b: bench.medianEbitda }) });
             }
 
             // Endividamento vs benchmark setorial
             if (r.debtRatio < bench.medianDebt) {
-                items.push({ icon: '\u2705', text: 'Endividamento de ' + r.debtRatio.toFixed(1) + '% esta abaixo da media do setor (' + bench.medianDebt + '%) - estrutura saudavel' });
+                items.push({ icon: '\u2705', text: t('diag.debtLow', { v: r.debtRatio.toFixed(1), b: bench.medianDebt }) });
             } else if (r.debtRatio < bench.medianDebt * 1.3) {
-                items.push({ icon: '\u26A0\uFE0F', text: 'Endividamento de ' + r.debtRatio.toFixed(1) + '% esta proximo da media do setor (' + bench.medianDebt + '%) - monitore a alavancagem' });
+                items.push({ icon: '\u26A0\uFE0F', text: t('diag.debtMed', { v: r.debtRatio.toFixed(1), b: bench.medianDebt }) });
             } else {
-                items.push({ icon: '\uD83D\uDD34', text: 'Endividamento de ' + r.debtRatio.toFixed(1) + '% esta acima da media do setor (' + bench.medianDebt + '%) - risco financeiro significativo' });
+                items.push({ icon: '\uD83D\uDD34', text: t('diag.debtHigh', { v: r.debtRatio.toFixed(1), b: bench.medianDebt }) });
             }
 
             if (r.roe > 15) {
-                items.push({ icon: '\u2705', text: 'Retorno sobre patrimonio atrativo para investidores' });
+                items.push({ icon: '\u2705', text: t('diag.roeHigh') });
             } else if (r.roe > 8) {
-                items.push({ icon: '\u26A0\uFE0F', text: 'ROE na media - busque maior eficiencia do capital' });
+                items.push({ icon: '\u26A0\uFE0F', text: t('diag.roeMed') });
             } else {
-                items.push({ icon: '\uD83D\uDD34', text: 'ROE baixo - capital dos socios rende pouco' });
+                items.push({ icon: '\uD83D\uDD34', text: t('diag.roeLow') });
             }
 
             // Growth
             if (r.growth === 'alto' || r.growth === 'medio') {
-                items.push({ icon: '\u2705', text: 'Empresa em crescimento - multiplos de mercado favoraveis' });
+                items.push({ icon: '\u2705', text: t('diag.growthPos') });
             } else if (r.growth === 'negativo') {
-                items.push({ icon: '\uD83D\uDD34', text: 'Receita em queda - revise o modelo de negocios' });
+                items.push({ icon: '\uD83D\uDD34', text: t('diag.growthNeg') });
             }
 
             if (r.netMargin > 15) {
-                items.push({ icon: '\u2705', text: 'Margem liquida acima do esperado - eficiencia excelente' });
+                items.push({ icon: '\u2705', text: t('diag.marginHigh') });
             }
 
             if (r.inventoryTurnover > 6) {
-                items.push({ icon: '\u2705', text: 'Giro de estoque eficiente - boa gestao de inventario' });
+                items.push({ icon: '\u2705', text: t('diag.invHigh') });
             } else if (r.inventoryTurnover > 0 && r.inventoryTurnover < 3) {
-                items.push({ icon: '\u26A0\uFE0F', text: 'Giro de estoque baixo - capital parado em inventario' });
+                items.push({ icon: '\u26A0\uFE0F', text: t('diag.invLow') });
             }
 
             // Desconto por porte
             if (r.sizeDiscount < 1.0) {
                 const sizePct = ((1 - r.sizeDiscount) * 100).toFixed(0);
-                items.push({ icon: '\u26A0\uFE0F', text: 'Ajuste de porte aplicado: -' + sizePct + '% (empresas menores tem multiplos mais baixos no mercado de M&A)' });
+                items.push({ icon: '\u26A0\uFE0F', text: t('diag.sizeAdj', { v: sizePct }) });
             }
 
             // Desconto de iliquidez
-            items.push({ icon: '\u2139\uFE0F', text: 'Desconto de iliquidez de 20% aplicado - empresas privadas valem menos que equivalentes listadas em bolsa por nao terem liquidez imediata' });
+            var illiqPct = ((1 - r.illiquidityDiscount) * 100).toFixed(0);
+            items.push({ icon: '\u2139\uFE0F', text: t('diag.illiquidity', { v: illiqPct }) });
 
             const list = document.getElementById('diagnosticList');
             list.innerHTML = '';
@@ -2588,39 +3876,19 @@
             var revenue = currentResults ? currentResults.revenue : 0;
             var employees = parseInt(document.getElementById('employees').value) || 1;
 
+            var baseScores = [7, 6, 5, 5, 6, 4, 5, 6];
+            var ttScores = [7, 5, 5, 6, 5, 4, 3, 5];
+            var webScores = [7, channel.indexOf('https') > -1 ? 9 : 4, 5, 5, 6, 4, 3, 4];
+
             if (isInstagram) {
-                criteria = [
-                    { name: 'Presenca na plataforma', score: 7, max: 10, tip: 'Ter um perfil no Instagram e essencial para visibilidade' },
-                    { name: 'Bio profissional', score: 6, max: 10, tip: 'Otimize a bio com CTA, link e proposta de valor clara' },
-                    { name: 'Consistencia de posts', score: 5, max: 10, tip: 'Publique no minimo 3-4x por semana com conteudo de valor' },
-                    { name: 'Estrategia de Stories', score: 5, max: 10, tip: 'Use stories diariamente com enquetes, bastidores e CTA' },
-                    { name: 'Reels e video curto', score: 6, max: 10, tip: 'Reels tem 2x mais alcance que posts estaticos em 2026' },
-                    { name: 'Funil de vendas', score: 4, max: 10, tip: 'Crie um funil: conteudo gratuito > lead magnet > oferta' },
-                    { name: 'Prova social', score: 5, max: 10, tip: 'Compartilhe depoimentos, resultados de clientes e cases' },
-                    { name: 'Link na bio otimizado', score: 6, max: 10, tip: 'Use Linktree ou similar com links rastreados (UTM)' }
-                ];
+                var igData = t('mkt.ig');
+                criteria = igData.map(function(item, idx) { return { name: item.name, score: baseScores[idx], max: 10, tip: item.tip }; });
             } else if (isTikTok) {
-                criteria = [
-                    { name: 'Presenca na plataforma', score: 7, max: 10, tip: 'TikTok e o canal de maior crescimento organico em 2026' },
-                    { name: 'Perfil otimizado', score: 5, max: 10, tip: 'Bio clara, link e CTA no perfil' },
-                    { name: 'Frequencia de publicacao', score: 5, max: 10, tip: 'Publique 1-2 videos por dia para maximizar alcance' },
-                    { name: 'Formato de conteudo', score: 6, max: 10, tip: 'Videos educativos e de bastidores performam melhor para B2B' },
-                    { name: 'Uso de tendencias', score: 5, max: 10, tip: 'Adapte trends virais ao seu nicho para ganhar visibilidade' },
-                    { name: 'Engajamento', score: 4, max: 10, tip: 'Responda todos os comentarios e interaja com seguidores' },
-                    { name: 'Conversao p/ vendas', score: 3, max: 10, tip: 'Inclua CTA nos videos e direcione para link na bio' },
-                    { name: 'Cross-posting', score: 5, max: 10, tip: 'Reposte seus melhores TikToks no Reels e Shorts' }
-                ];
+                var ttData = t('mkt.tt');
+                criteria = ttData.map(function(item, idx) { return { name: item.name, score: ttScores[idx], max: 10, tip: item.tip }; });
             } else {
-                criteria = [
-                    { name: 'Presenca online', score: 7, max: 10, tip: 'Ter um site proprio transmite profissionalismo e credibilidade' },
-                    { name: 'SSL / Seguranca', score: channel.indexOf('https') > -1 ? 9 : 4, max: 10, tip: 'Sites sem HTTPS perdem ranking no Google e confianca do usuario' },
-                    { name: 'SEO basico', score: 5, max: 10, tip: 'Otimize titulos, meta descriptions e headings para Google' },
-                    { name: 'Velocidade de carregamento', score: 5, max: 10, tip: 'Sites que carregam em +3s perdem 53% dos visitantes mobile' },
-                    { name: 'Mobile responsivo', score: 6, max: 10, tip: '70% do trafego brasileiro vem de celular - seu site precisa ser mobile-first' },
-                    { name: 'CTA e conversao', score: 4, max: 10, tip: 'Tenha CTAs claros em cada pagina: botao WhatsApp, formulario, compra' },
-                    { name: 'Google Meu Negocio', score: 3, max: 10, tip: 'Cadastre sua empresa no Google Maps para aparecer em buscas locais' },
-                    { name: 'Analytics instalado', score: 4, max: 10, tip: 'Sem dados, voce nao sabe o que funciona. Instale o GA4' }
-                ];
+                var webData = t('mkt.web');
+                criteria = webData.map(function(item, idx) { return { name: item.name, score: webScores[idx], max: 10, tip: item.tip }; });
             }
 
             // Ajustar scores baseado no porte da empresa
@@ -2645,8 +3913,8 @@
             else { scoreEl.style.borderColor = 'rgba(255,77,106,0.6)'; scoreEl.style.color = '#ff4d6a'; }
 
             // Score label
-            var labels = ['Critico', 'Muito fraco', 'Fraco', 'Abaixo da media', 'Regular', 'Na media', 'Acima da media', 'Bom', 'Muito bom', 'Excelente', 'Referencia'];
-            document.getElementById('mktScoreLabel').textContent = labels[Math.min(10, Math.floor(scoreNum))] + ' para o segmento';
+            var labels = t('mkt.labels');
+            document.getElementById('mktScoreLabel').textContent = labels[Math.min(10, Math.floor(scoreNum))];
 
             // Render criteria
             var criteriaHTML = '';
@@ -2666,11 +3934,12 @@
             var weakest = criteria.reduce(function(a, b) { return a.score < b.score ? a : b; });
             var strongest = criteria.reduce(function(a, b) { return a.score > b.score ? a : b; });
             var platform = isInstagram ? 'Instagram' : isTikTok ? 'TikTok' : 'site';
-            var verdict = '<strong style="color:#D4A853;">Diagnostico de Marketing (' + platform + ')</strong><br><br>' +
-                '<strong>Ponto forte:</strong> ' + strongest.name + ' (' + strongest.score + '/10)<br>' +
-                '<strong>Maior oportunidade:</strong> ' + weakest.name + ' (' + weakest.score + '/10)<br><br>' +
-                '<strong>Recomendacao principal:</strong> ' + weakest.tip + '<br><br>' +
-                '<span style="font-size:0.75rem;color:rgba(255,255,255,0.4);">Analise baseada em benchmarks de marketing digital para ' + (document.getElementById('sector').options[document.getElementById('sector').selectedIndex].text || 'seu setor') + ' no Brasil (2026).</span>';
+            var sectorText = document.getElementById('sector').options[document.getElementById('sector').selectedIndex].text || '';
+            var verdict = '<strong style="color:#D4A853;">' + t('mkt.diagTitle') + ' (' + platform + ')</strong><br><br>' +
+                '<strong>' + t('mkt.strongPoint') + '</strong> ' + strongest.name + ' (' + strongest.score + '/10)<br>' +
+                '<strong>' + t('mkt.opportunity') + '</strong> ' + weakest.name + ' (' + weakest.score + '/10)<br><br>' +
+                '<strong>' + t('mkt.recommendation') + '</strong> ' + weakest.tip + '<br><br>' +
+                '<span style="font-size:0.75rem;color:rgba(255,255,255,0.4);">' + t('mkt.benchmarkNote', { s: sectorText, y: '2026' }) + '</span>';
             document.getElementById('mktVerdict').innerHTML = verdict;
         }
 
@@ -2681,23 +3950,29 @@
         const MERCADO_PAGO_LINK = 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=86421409-460bf57c-daa3-4ed1-93bc-2d90627e832b';
 
         function handlePayment() {
-            if (MERCADO_PAGO_LINK) {
-                // Salvar dados no localStorage antes de redirecionar
+            var cfg = regionConfig[currentLang];
+            var paymentLink = (currentLang === 'pt') ? MERCADO_PAGO_LINK : cfg.paymentLink;
+
+            if (paymentLink) {
                 localStorage.setItem('vp_pending_unlock', 'true');
                 localStorage.setItem('vp_results', JSON.stringify(currentResults));
-                // Disparar conversao Google Ads antes de redirecionar
+                localStorage.setItem('vp_lang', currentLang);
                 gtag('event', 'conversion', {
                     'send_to': 'AW-18029764921/iFnwCJqLvY0cELnCoZVD',
-                    'value': 99.0,
-                    'currency': 'BRL',
+                    'value': cfg.priceValue,
+                    'currency': cfg.currency,
                     'event_callback': function() {
-                        window.location.href = MERCADO_PAGO_LINK;
+                        window.location.href = paymentLink;
                     }
                 });
-                // Fallback: redirecionar apos 1s caso o gtag demore
-                setTimeout(function() { window.location.href = MERCADO_PAGO_LINK; }, 1000);
+                setTimeout(function() { window.location.href = paymentLink; }, 1000);
             } else {
-                unlockReport();
+                // PayPal links not yet configured - show message
+                if (currentLang !== 'pt') {
+                    showToast('Payment link coming soon. Contact us for early access.');
+                } else {
+                    unlockReport();
+                }
             }
         }
 
@@ -2707,10 +3982,23 @@
             document.getElementById('paywallOverlay').classList.add('hidden');
             var ctaInline = document.getElementById('ctaInline');
             if (ctaInline) ctaInline.style.display = 'none';
+            // Reveal main value
+            var teaser = document.getElementById('teaserResult');
+            var fullVal = document.getElementById('fullValueResult');
+            if (teaser) teaser.style.display = 'none';
+            if (fullVal) {
+                fullVal.style.display = '';
+                if (currentResults && currentResults.adjustedValuation) {
+                    animateValue('finalValue', currentResults.adjustedValuation);
+                }
+            }
+            // Show action buttons
+            var freeActions = document.getElementById('freeActions');
+            if (freeActions) freeActions.style.display = '';
             localStorage.setItem('vp_unlocked', 'true');
             localStorage.setItem('vp_unlock_date', Date.now().toString());
             localStorage.removeItem('vp_pending_unlock');
-            showToast('Relatorio desbloqueado com sucesso!');
+            showToast(t('toast.unlocked'));
         }
 
         // Mostrar resultados (esconde formulario, mostra container)
@@ -2752,11 +4040,16 @@
             var pending = localStorage.getItem('vp_pending_unlock');
             var alreadyUnlocked = localStorage.getItem('vp_unlocked');
 
-            // Detectar retorno do Mercado Pago (multiplos parametros possiveis)
+            // Detectar retorno do Mercado Pago ou PayPal (multiplos parametros possiveis)
             var mpStatus = params.get('status') || params.get('collection_status') || '';
             var mpPaymentId = params.get('payment_id') || params.get('collection_id') || '';
-            var isApproved = mpStatus === 'approved';
-            var hasPaymentId = mpPaymentId.length > 0;
+            var ppToken = params.get('token') || '';
+            var ppPayerId = params.get('PayerID') || '';
+            var isApproved = mpStatus === 'approved' || ppToken.length > 0;
+            var hasPaymentId = mpPaymentId.length > 0 || ppPayerId.length > 0;
+            // Restore language from before redirect
+            var savedLang = localStorage.getItem('vp_lang');
+            if (savedLang && translations[savedLang]) currentLang = savedLang;
 
             // Voltou do Mercado Pago com sucesso
             if (pending && (isApproved || hasPaymentId)) {
@@ -2812,19 +4105,19 @@
             const duration = 2000;
             const steps = 60;
             const stepDuration = duration / steps;
+            var sym = getCurrencyPrefix();
             let current = 0;
             let step = 0;
 
             const timer = setInterval(() => {
                 step++;
-                // Easing function (ease-out)
                 const progress = 1 - Math.pow(1 - (step / steps), 3);
                 current = finalValue * progress;
-                el.textContent = 'R$ ' + formatCurrency(current);
+                el.textContent = sym + formatCurrency(current);
 
                 if (step >= steps) {
                     clearInterval(timer);
-                    el.textContent = 'R$ ' + formatCurrency(finalValue);
+                    el.textContent = sym + formatCurrency(finalValue);
                 }
             }, stepDuration);
         }
@@ -2834,16 +4127,18 @@
 
         // ===== UTILITIES =====
         function formatCurrency(value) {
-            return value.toLocaleString('pt-BR', {
+            var cfg = regionConfig[currentLang];
+            return value.toLocaleString(cfg.locale, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             });
         }
 
         function formatCurrencyInput(input) {
+            var cfg = regionConfig[currentLang];
             let value = input.value.replace(/\D/g, '');
             if (value) {
-                value = (parseInt(value) / 100).toLocaleString('pt-BR', {
+                value = (parseInt(value) / 100).toLocaleString(cfg.locale, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
@@ -2853,7 +4148,12 @@
 
         function parseCurrencyInput(value) {
             if (!value) return 0;
-            return parseFloat(value.replace(/\./g, '').replace(',', '.')) || 0;
+            var cfg = regionConfig[currentLang];
+            if (cfg.decimalSep === ',') {
+                return parseFloat(value.replace(/\./g, '').replace(/\s/g, '').replace(',', '.')) || 0;
+            } else {
+                return parseFloat(value.replace(/,/g, '').replace(/\s/g, '')) || 0;
+            }
         }
 
         function saveData(formData, results) {
@@ -2875,58 +4175,59 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             const r = currentResults;
+            var sym = getCurrencyPrefix();
 
             // Cabecalho
             doc.setFontSize(22);
             doc.setFont(undefined, 'bold');
-            doc.text('QUANTO VALE A MINHA EMPRESA?', 20, 30);
+            doc.text(t('pdf.title'), 20, 30);
 
             doc.setFontSize(12);
             doc.setFont(undefined, 'normal');
-            doc.text('Data: ' + r.date, 20, 50);
-            doc.text('Empresa: ' + r.companyName, 20, 60);
-            doc.text('Setor: ' + r.sector, 20, 70);
+            doc.text(t('pdf.date') + ' ' + r.date, 20, 50);
+            doc.text(t('pdf.company') + ' ' + r.companyName, 20, 60);
+            doc.text(t('pdf.sector') + ' ' + t('sector.' + r.sector), 20, 70);
 
             // Metodologia
             doc.setFontSize(14);
             doc.setFont(undefined, 'bold');
-            doc.text('METODOLOGIA:', 20, 90);
+            doc.text(t('pdf.methodology'), 20, 90);
             doc.setFontSize(10);
             doc.setFont(undefined, 'normal');
-            doc.text('- Multiplos baseados em transacoes reais de M&A no Brasil (2024-2026)', 20, 100);
-            doc.text('- Desconto de iliquidez de 20% aplicado (empresa privada)', 20, 108);
-            doc.text('- Ajuste por porte: fator ' + r.sizeDiscount.toFixed(2) + 'x aplicado', 20, 116);
-            doc.text('- Ajuste por rentabilidade: fator ' + r.profitabilityFactor.toFixed(2) + 'x', 20, 124);
-            doc.text('- Ajuste por endividamento, crescimento e posicao de mercado', 20, 132);
-            doc.text('- Fontes: PwC, KPMG, EY - transacoes M&A de PMEs privadas brasileiras', 20, 140);
+            doc.text('- ' + t('pdf.methLine1'), 20, 100);
+            doc.text('- ' + t('pdf.methLine2'), 20, 108);
+            doc.text('- ' + t('pdf.methLine3', { v: r.sizeDiscount.toFixed(2) }), 20, 116);
+            doc.text('- ' + t('pdf.methLine4', { v: r.profitabilityFactor.toFixed(2) }), 20, 124);
+            doc.text('- ' + t('pdf.methLine5'), 20, 132);
+            doc.text('- ' + t('pdf.methLine6'), 20, 140);
 
             // Resultados
             doc.setFontSize(16);
             doc.setFont(undefined, 'bold');
-            doc.text('ANALISE COMPLETA:', 20, 160);
+            doc.text(t('pdf.results'), 20, 160);
 
             doc.setFontSize(12);
             doc.setFont(undefined, 'normal');
             let yPos = 174;
 
             const results = [
-                'Valuation por Receita: R$ ' + formatCurrency(r.revenueValuation),
-                'Valuation por EBITDA: R$ ' + formatCurrency(r.ebitdaValuation),
-                'Valuation por Lucro: R$ ' + formatCurrency(r.netIncomeValuation),
-                'Patrimonio Liquido: R$ ' + formatCurrency(r.netWorth),
+                t('cards.revenueVal') + ': ' + sym + formatCurrency(r.revenueValuation),
+                t('cards.ebitdaVal') + ': ' + sym + formatCurrency(r.ebitdaValuation),
+                t('cards.profitVal') + ': ' + sym + formatCurrency(r.netIncomeValuation),
+                t('cards.netWorth') + ': ' + sym + formatCurrency(r.netWorth),
                 '',
-                'Margem EBITDA: ' + r.ebitdaMargin.toFixed(1) + '%',
-                'Margem Liquida: ' + r.netMargin.toFixed(1) + '%',
+                t('cards.ebitdaMargin') + ': ' + r.ebitdaMargin.toFixed(1) + '%',
+                t('cards.netMargin') + ': ' + r.netMargin.toFixed(1) + '%',
                 'ROE: ' + r.roe.toFixed(1) + '%',
-                'Receita por Funcionario: R$ ' + formatCurrency(r.revenuePerEmployee),
+                t('cards.revenuePerEmployee') + ': ' + sym + formatCurrency(r.revenuePerEmployee),
                 '',
-                'Indice de Endividamento: ' + r.debtRatio.toFixed(1) + '%',
-                'LTV por Cliente: ' + (r.ltv > 0 ? 'R$ ' + formatCurrency(r.ltv) : 'N/A'),
-                'Enterprise Value: R$ ' + formatCurrency(r.enterpriseValue),
-                'Giro de Estoque: ' + (r.inventoryTurnover > 0 ? r.inventoryTurnover.toFixed(1) + 'x' : 'N/A'),
-                'Capital de Giro: R$ ' + formatCurrency(r.workingCapitalNet),
-                'Ciclo de Caixa: ' + (r.cashCycleDays > 0 ? r.cashCycleDays + ' dias' : 'N/A'),
-                'Fator de Ajuste: ' + r.adjustmentFactor.toFixed(2) + 'x',
+                t('cards.debtRatio') + ': ' + r.debtRatio.toFixed(1) + '%',
+                t('cards.ltv') + ': ' + (r.ltv > 0 ? sym + formatCurrency(r.ltv) : t('common.na')),
+                'Enterprise Value: ' + sym + formatCurrency(r.enterpriseValue),
+                t('cards.inventoryTurnover') + ': ' + (r.inventoryTurnover > 0 ? r.inventoryTurnover.toFixed(1) + 'x' : t('common.na')),
+                t('cards.workingCapitalLabel') + ': ' + sym + formatCurrency(r.workingCapitalNet),
+                t('cards.cashCycleLabel') + ': ' + (r.cashCycleDays > 0 ? r.cashCycleDays + ' ' + t('common.days') : t('common.na')),
+                t('cards.adjustmentFactor') + ': ' + r.adjustmentFactor.toFixed(2) + 'x',
             ];
 
             results.forEach(function(line) {
@@ -2937,17 +4238,17 @@
             yPos += 6;
             doc.setFontSize(14);
             doc.setFont(undefined, 'bold');
-            doc.text('VALOR ESTIMADO: R$ ' + formatCurrency(r.adjustedValuation), 20, yPos);
+            doc.text(t('pdf.estimated') + ' ' + sym + formatCurrency(r.adjustedValuation), 20, yPos);
             yPos += 10;
             doc.setFontSize(12);
             doc.setFont(undefined, 'normal');
-            doc.text('Faixa: R$ ' + formatCurrency(r.minValuation) + ' - R$ ' + formatCurrency(r.maxValuation), 20, yPos);
+            doc.text(t('pdf.range') + ' ' + sym + formatCurrency(r.minValuation) + ' - ' + sym + formatCurrency(r.maxValuation), 20, yPos);
 
             // Diagnostico
             yPos += 16;
             doc.setFontSize(14);
             doc.setFont(undefined, 'bold');
-            doc.text('DIAGNOSTICO GERAL:', 20, yPos);
+            doc.text(t('pdf.diagnostic'), 20, yPos);
             yPos += 10;
             doc.setFontSize(10);
             doc.setFont(undefined, 'normal');
@@ -2970,34 +4271,44 @@
             }
             yPos = Math.max(yPos + 10, 250);
             doc.setFontSize(10);
-            doc.text('Valuation Pro - Metodologia baseada em transacoes reais de M&A', 20, yPos);
-            doc.text('Multiplos setoriais de fontes publicas (PwC, KPMG, EY)', 20, yPos + 10);
+            doc.text(t('pdf.footer1'), 20, yPos);
+            doc.text(t('pdf.footer2'), 20, yPos + 10);
             doc.text('www.qualmeuvaluation.com.br', 20, yPos + 20);
 
             doc.save('valuation-' + r.companyName.replace(/\s+/g, '-') + '-' + new Date().getTime() + '.pdf');
         }
 
         function shareResults() {
-            const shareText = 'Acabei de calcular o valor da minha empresa!\n\nValor estimado: R$ ' + formatCurrency(currentResults.adjustedValuation) + '\n\nUse a calculadora Valuation Pro\nMetodologia profissional com multiplos reais de M&A\nAnalise completa em minutos\n\n#valuation #empreendedorismo #startups #quantovaleminhaempresa';
+            var sym = getCurrencyPrefix();
+            const shareText = t('share.text', { value: sym + formatCurrency(currentResults.adjustedValuation) });
 
             if (navigator.share) {
                 navigator.share({
-                    title: 'Resultado do Valuation',
+                    title: t('share.title'),
                     text: shareText,
                     url: window.location.href
                 });
             } else {
                 navigator.clipboard.writeText(shareText + '\n\n' + window.location.href);
-                alert('Resultado copiado para clipboard! Cole nas suas redes sociais.');
+                alert(t('share.copied'));
             }
         }
 
         // ===== CURRENCY INPUT FORMATTING =====
         document.addEventListener('DOMContentLoaded', function() {
+            // Detect and apply language FIRST
+            currentLang = detectLanguage();
+            applyTranslations();
+            // Update active button
+            document.querySelectorAll('.lang-btn').forEach(function(btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-lang') === currentLang);
+            });
+
             const currencyInputs = document.querySelectorAll('.currency-input');
 
             currencyInputs.forEach(input => {
                 input.addEventListener('input', function() {
+                    var cfg = regionConfig[currentLang];
                     let value = this.value.replace(/\D/g, '');
                     if (value === '') {
                         this.value = '';
@@ -3005,7 +4316,7 @@
                     }
 
                     value = parseInt(value);
-                    this.value = (value / 100).toLocaleString('pt-BR', {
+                    this.value = (value / 100).toLocaleString(cfg.locale, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
                     });
