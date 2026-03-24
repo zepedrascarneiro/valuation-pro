@@ -3879,8 +3879,8 @@
             if (pending && (isApproved || hasPaymentId)) {
                 restoreAndShowResults(true);
             }
-            // Voltou do MP com qualquer parametro (fallback - se pending, desbloqueia)
-            else if (pending && window.location.search.length > 1) {
+            // Voltou do MP com parametros de pagamento (fallback seguro)
+            else if (pending && (params.get('status') || params.get('collection_status') || params.get('payment_id') || params.get('collection_id') || params.get('PayerID'))) {
                 restoreAndShowResults(true);
             }
             // Ja pagou anteriormente (acesso por 30 dias) e tem resultados salvos
