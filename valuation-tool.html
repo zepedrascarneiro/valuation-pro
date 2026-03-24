@@ -345,11 +345,7 @@
             50% { opacity: 1; }
             100% { opacity: 0.4; }
         }
-        @keyframes pulseBtn {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(212,168,83,0.4); }
-            50% { transform: scale(1.02); box-shadow: 0 0 20px 4px rgba(212,168,83,0.2); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(212,168,83,0.4); }
-        }
+        @keyframes pulseBtn { from {} to {} }
         @keyframes fieldFadeIn {
             from {
                 opacity: 0;
@@ -1918,40 +1914,32 @@
                         <div style="font-size:0.75rem; color:rgba(212,168,83,0.7); margin-top:10px;">&#128274; O valor exato est&aacute; pronto. Desbloqueie abaixo.</div>
                     </div>
 
-                    <!-- TIMER + CTA + RELATORIO COMPLETO - TUDO JUNTO -->
-                    <div style="background:linear-gradient(135deg, rgba(212,168,83,0.15), rgba(212,168,83,0.04)); border:2px solid rgba(212,168,83,0.45); border-radius:16px; padding:28px 24px; text-align:center; margin-bottom:16px; position:relative; overflow:hidden;">
-                        <div style="position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, #D4A853, #F5D78E, #D4A853); animation: shimmerLine 2s infinite;"></div>
-                        <div style="font-size:0.7rem; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:2px; margin-bottom:8px;">Oferta por tempo limitado</div>
-                        <div id="countdownTimer" style="font-size:2rem; font-weight:800; color:#D4A853; font-variant-numeric:tabular-nums; margin-bottom:14px;">09:00</div>
-
-                        <div style="font-size:1.2rem; font-weight:700; color:#fff; margin-bottom:4px;">Relat&oacute;rio Completo de Valuation</div>
-                        <div style="font-size:0.8rem; color:rgba(255,255,255,0.45); margin-bottom:16px;">An&aacute;lise detalhada com 15 indicadores e diagn&oacute;stico</div>
+                    <!-- CTA PRINCIPAL - LIMPO E PROFISSIONAL -->
+                    <div style="background:linear-gradient(135deg, rgba(212,168,83,0.12), rgba(212,168,83,0.03)); border:2px solid rgba(212,168,83,0.35); border-radius:16px; padding:28px 24px; text-align:center; margin-bottom:16px;">
+                        <div id="countdownTimer" style="display:none;">09:00</div>
+                        <div style="font-size:1.2rem; font-weight:700; color:#fff; margin-bottom:6px;">Desbloqueie seu Relat&oacute;rio Completo</div>
+                        <div style="font-size:0.8rem; color:rgba(255,255,255,0.45); margin-bottom:20px;">An&aacute;lise com 15 indicadores &middot; Dados de M&amp;A atualizados para mar&ccedil;o 2026</div>
 
                         <div style="text-align:left; max-width:360px; margin:0 auto 20px;">
-                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:0.8rem; color:rgba(255,255,255,0.7);">
-                                <span style="color:#4ade80;">&#x2713;</span> Valor exato da empresa em R$
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:0.82rem; color:rgba(255,255,255,0.7);">
+                                <span style="color:#4ade80;">&#x2713;</span> Valor exato da sua empresa em R$
                             </div>
-                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:0.8rem; color:rgba(255,255,255,0.7);">
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:0.82rem; color:rgba(255,255,255,0.7);">
                                 <span style="color:#4ade80;">&#x2713;</span> 15 m&eacute;tricas usadas por fundos de investimento
                             </div>
-                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:0.8rem; color:rgba(255,255,255,0.7);">
-                                <span style="color:#4ade80;">&#x2713;</span> Benchmarks exclusivos do seu setor (M&amp;A real)
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:0.82rem; color:rgba(255,255,255,0.7);">
+                                <span style="color:#4ade80;">&#x2713;</span> Benchmarks exclusivos do seu setor
                             </div>
-                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:0.8rem; color:rgba(255,255,255,0.7);">
-                                <span style="color:#4ade80;">&#x2713;</span> Relat&oacute;rio PDF profissional para investidores
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:0.82rem; color:rgba(255,255,255,0.7);">
+                                <span style="color:#4ade80;">&#x2713;</span> Relat&oacute;rio PDF pronto para investidores
                             </div>
-                            <div style="display:flex; align-items:center; gap:8px; font-size:0.8rem; color:rgba(255,255,255,0.7);">
+                            <div style="display:flex; align-items:center; gap:8px; font-size:0.82rem; color:rgba(255,255,255,0.7);">
                                 <span style="color:#4ade80;">&#x2713;</span> Acesso por 30 dias &mdash; recalcule quando quiser
                             </div>
                         </div>
 
-                        <button class="btn-pay" onclick="handlePayment()" style="margin:0 auto; display:block; font-size:1.1rem; padding:18px 48px; width:100%; max-width:400px; animation: pulseBtn 2s infinite;">DESBLOQUEAR POR APENAS R$ 49,00</button>
+                        <button class="btn-pay" onclick="handlePayment()" style="margin:0 auto; display:block; font-size:1.1rem; padding:18px 48px; width:100%; max-width:400px;">DESBLOQUEAR POR R$ 49,00</button>
                         <div style="margin-top:12px; font-size:0.7rem; color:rgba(255,255,255,0.35);">Pix &middot; Cart&atilde;o &middot; Boleto &middot; Acesso imediato</div>
-                        <div style="display:flex; justify-content:center; gap:16px; margin-top:12px; font-size:0.7rem; color:rgba(255,255,255,0.3);">
-                            <span>&#x1F512; Dados seguros</span>
-                            <span>&#x26A1; Acesso instant&acirc;neo</span>
-                            <span>&#x1F4C4; PDF profissional</span>
-                        </div>
                         <div style="margin-top:14px; font-size:0.65rem; color:rgba(212,168,83,0.5);">Metodologia validada por +2.000 empresas</div>
                     </div>
                 </div>
@@ -2031,10 +2019,6 @@
                             </div>
                         </div>
 
-                        <!-- CTA inline #2 -->
-                        <div class="locked-cta-inline" style="text-align:center; padding:16px; margin:16px 0; background:linear-gradient(135deg, rgba(212,168,83,0.08), transparent); border:1px dashed rgba(212,168,83,0.3); border-radius:12px; cursor:pointer;" onclick="handlePayment()">
-                            <div style="font-size:0.85rem; color:#D4A853; font-weight:600;">&#128274; Desbloqueie todos os indicadores &mdash; R$ 49</div>
-                        </div>
 
                         <!-- Section 2: Saúde Financeira -->
                         <div class="dash-section-title">Saúde Financeira</div>
@@ -2120,10 +2104,6 @@
                             </div>
                         </div>
 
-                        <!-- CTA inline #3 -->
-                        <div class="locked-cta-inline" style="text-align:center; padding:16px; margin:16px 0; background:linear-gradient(135deg, rgba(212,168,83,0.08), transparent); border:1px dashed rgba(212,168,83,0.3); border-radius:12px; cursor:pointer;" onclick="handlePayment()">
-                            <div style="font-size:0.85rem; color:#D4A853; font-weight:600;">&#9201; Tempo limitado &mdash; Desbloqueie por R$ 49</div>
-                        </div>
 
                         <!-- Section 5: Eficiência Operacional -->
                         <div class="dash-section-title">Eficiência Operacional</div>
@@ -2176,29 +2156,13 @@
                             <!-- Populated by JS -->
                         </ul>
                         <div class="diag-actions">
-                            <button type="button" class="btn-diag primary" onclick="generatePDF()">&#x1F4C4; Gerar Relatório PDF</button>
-                            <button type="button" class="btn-diag secondary" onclick="shareResults()">&#x1F4E4; Compartilhar</button>
+                            <button type="button" class="btn-diag primary" onclick="generatePDF()" style="display:none;" id="btnPdfDiag">&#x1F4C4; Gerar Relatório PDF</button>
+                            <button type="button" class="btn-diag secondary" onclick="shareResults()" style="display:none;" id="btnShareDiag">&#x1F4E4; Compartilhar</button>
                         </div>
                     </div>
 
-                    <!-- Paywall Overlay -->
-                    <div class="paywall-overlay" id="paywallOverlay">
-                        <div class="paywall-card">
-                            <h3>Relatório Completo de Valuation</h3>
-                            <div class="subtitle">Análise detalhada com 15 indicadores, diagnóstico e PDF</div>
-
-                            <ul class="paywall-features">
-                                <li><span class="check">&#x2713;</span> 15 m&eacute;tricas de valuation usadas por fundos de investimento</li>
-                                <li><span class="check">&#x2713;</span> Benchmarks exclusivos do seu setor (dados reais de M&amp;A)</li>
-                                <li><span class="check">&#x2713;</span> Relat&oacute;rio PDF profissional &mdash; pronto para investidores</li>
-                                <li><span class="check">&#x2713;</span> Acesso ilimitado por 30 dias &mdash; recalcule sempre que precisar</li>
-                            </ul>
-
-                            <button class="btn-pay" onclick="handlePayment()">ACESSAR RELATÓRIO &mdash; R$ 49,00</button>
-                            <div style="text-align:center; margin-top:8px; font-size:0.7rem; color:rgba(255,255,255,0.35);">Pix · Cartão · Boleto</div>
-                            <div style="text-align:center; margin-top:10px; font-size:0.7rem; color:rgba(212,168,83,0.6); font-weight:500;">Metodologia validada por +2.000 empresas</div>
-                        </div>
-                    </div>
+                    <!-- Paywall removido - CTA unico no topo -->
+                    <div class="paywall-overlay hidden" id="paywallOverlay"></div>
                 </div>
             </div>
         </div>
