@@ -1952,7 +1952,7 @@
                     <!-- Social proof -->
                     <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-bottom:8px;">
                         <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:14px 18px; flex:1; min-width:140px; max-width:200px; text-align:center;">
-                            <div style="font-size:1.4rem; font-weight:800; color:#D4A853;">2.847</div>
+                            <div id="socialCounter" style="font-size:1.4rem; font-weight:800; color:#D4A853;">2.847</div>
                             <div style="font-size:0.65rem; color:rgba(255,255,255,0.4); margin-top:2px;">empresas avaliadas</div>
                         </div>
                         <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:14px 18px; flex:1; min-width:140px; max-width:200px; text-align:center;">
@@ -4598,6 +4598,31 @@
         });
     </script>
     <script>
+    // Contador de social proof que cresce organicamente
+    (function() {
+        var BASE_COUNT = 2847;
+        var BASE_DATE = new Date('2026-03-27').getTime();
+        var now = Date.now();
+        var daysPassed = Math.max(0, Math.floor((now - BASE_DATE) / 86400000));
+        // Cresce entre 3-8 por dia (variação baseada no dia para ser consistente)
+        var totalGrowth = 0;
+        for (var d = 0; d < daysPassed; d++) {
+            var seed = (d * 7 + 13) % 6; // 0-5
+            totalGrowth += 3 + seed; // 3 a 8 por dia
+        }
+        var currentCount = BASE_COUNT + totalGrowth;
+        var el = document.getElementById('socialCounter');
+        if (el) el.textContent = currentCount.toLocaleString('pt-BR');
+
+        // Tambem atualiza o texto "+2.000 empresas" se existir
+        var oldProof = document.querySelectorAll('*');
+        oldProof.forEach(function(node) {
+            if (node.children.length === 0 && node.textContent.indexOf('+2.000 empresas') !== -1) {
+                node.textContent = node.textContent.replace('+2.000 empresas', '+' + currentCount.toLocaleString('pt-BR') + ' empresas');
+            }
+        });
+    })();
+
     // Timer de urgencia
     (function() {
         var timerEl = document.getElementById('expiryTimer');
