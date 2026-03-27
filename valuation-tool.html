@@ -1909,38 +1909,60 @@
                         <div style="font-size:0.8rem; color:rgba(255,255,255,0.4); margin-bottom:8px;">Valor Estimado da Empresa</div>
                         <div style="font-size:2.4rem; font-weight:800; letter-spacing:2px; user-select:none;">
                             <span style="color:#fff;">R$</span>
-                            <span style="color:rgba(255,255,255,0.12); filter:blur(12px); margin-left:4px; pointer-events:none;">888.888,88</span>
+                            <span id="teaserBlurValue" style="color:rgba(255,255,255,0.12); filter:blur(12px); margin-left:4px; pointer-events:none;">2.450.000</span>
                         </div>
-                        <div style="font-size:0.75rem; color:rgba(212,168,83,0.7); margin-top:10px;">&#128274; O valor exato est&aacute; pronto. Desbloqueie abaixo.</div>
+                        <div style="font-size:0.75rem; color:rgba(74,222,128,0.8); margin-top:10px;">&#9989; Seu valuation foi calculado com sucesso</div>
                     </div>
 
-                    <!-- CTA PRINCIPAL - LIMPO E PROFISSIONAL -->
+                    <!-- CTA PRINCIPAL -->
                     <div style="background:linear-gradient(135deg, rgba(212,168,83,0.12), rgba(212,168,83,0.03)); border:2px solid rgba(212,168,83,0.35); border-radius:16px; padding:28px 24px; text-align:center; margin-bottom:16px;">
-                        <div id="countdownTimer" style="display:none;">09:00</div>
-                        <div style="font-size:1.2rem; font-weight:700; color:#fff; margin-bottom:6px;">Desbloqueie seu Relat&oacute;rio Completo</div>
-                        <div style="font-size:0.8rem; color:rgba(255,255,255,0.45); margin-bottom:20px;">An&aacute;lise com 15 indicadores &middot; Dados de M&amp;A atualizados para mar&ccedil;o 2026</div>
+
+                        <!-- Urgencia -->
+                        <div style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); border-radius:8px; padding:8px 16px; margin-bottom:16px; display:inline-block;">
+                            <span style="font-size:0.75rem; color:#f87171; font-weight:600;">&#9200; Seu resultado expira em <span id="expiryTimer">14:59</span></span>
+                        </div>
+
+                        <div style="font-size:1.3rem; font-weight:700; color:#fff; margin-bottom:4px;">Seu valuation est&aacute; pronto</div>
+                        <div style="font-size:0.85rem; color:rgba(255,255,255,0.5); margin-bottom:20px;">Desbloqueie o valor exato + relat&oacute;rio completo</div>
 
                         <div style="text-align:left; max-width:360px; margin:0 auto 20px;">
                             <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:0.82rem; color:rgba(255,255,255,0.7);">
-                                <span style="color:#4ade80;">&#x2713;</span> Valor exato da sua empresa em R$
+                                <span style="color:#4ade80;">&#x2713;</span> <strong style="color:#fff;">Valor exato</strong> da sua empresa em R$
                             </div>
                             <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:0.82rem; color:rgba(255,255,255,0.7);">
-                                <span style="color:#4ade80;">&#x2713;</span> 15 m&eacute;tricas usadas por fundos de investimento
+                                <span style="color:#4ade80;">&#x2713;</span> <strong style="color:#fff;">15 indicadores</strong> usados por fundos de investimento
                             </div>
                             <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:0.82rem; color:rgba(255,255,255,0.7);">
-                                <span style="color:#4ade80;">&#x2713;</span> Benchmarks exclusivos do seu setor
-                            </div>
-                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:0.82rem; color:rgba(255,255,255,0.7);">
-                                <span style="color:#4ade80;">&#x2713;</span> Relat&oacute;rio PDF pronto para investidores
+                                <span style="color:#4ade80;">&#x2713;</span> <strong style="color:#fff;">Relat&oacute;rio PDF</strong> pronto para investidores
                             </div>
                             <div style="display:flex; align-items:center; gap:8px; font-size:0.82rem; color:rgba(255,255,255,0.7);">
-                                <span style="color:#4ade80;">&#x2713;</span> Acesso por 30 dias &mdash; recalcule quando quiser
+                                <span style="color:#4ade80;">&#x2713;</span> Acesso por 30 dias para recalcular
                             </div>
                         </div>
 
-                        <button class="btn-pay" onclick="handlePayment()" style="margin:0 auto; display:block; font-size:1.1rem; padding:18px 48px; width:100%; max-width:400px;">DESBLOQUEAR POR R$ 49,00</button>
-                        <div style="margin-top:12px; font-size:0.7rem; color:rgba(255,255,255,0.35);">Pix &middot; Cart&atilde;o &middot; Boleto &middot; Acesso imediato</div>
-                        <div style="margin-top:14px; font-size:0.65rem; color:rgba(212,168,83,0.5);">Metodologia validada por +2.000 empresas</div>
+                        <button class="btn-pay" onclick="handlePayment()" style="margin:0 auto; display:block; font-size:1.15rem; padding:20px 48px; width:100%; max-width:400px;">DESBLOQUEAR POR R$ 49,00</button>
+                        <div style="margin-top:10px; font-size:0.7rem; color:rgba(255,255,255,0.35);">Pix &middot; Cart&atilde;o &middot; Boleto &middot; Acesso imediato</div>
+
+                        <!-- Garantia -->
+                        <div style="margin-top:16px; padding:10px 16px; background:rgba(74,222,128,0.08); border:1px solid rgba(74,222,128,0.2); border-radius:8px; display:inline-block;">
+                            <span style="font-size:0.72rem; color:#4ade80;">&#128737; Garantia de 7 dias. N&atilde;o gostou? Devolvemos seu dinheiro.</span>
+                        </div>
+                    </div>
+
+                    <!-- Social proof -->
+                    <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-bottom:8px;">
+                        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:14px 18px; flex:1; min-width:140px; max-width:200px; text-align:center;">
+                            <div style="font-size:1.4rem; font-weight:800; color:#D4A853;">2.847</div>
+                            <div style="font-size:0.65rem; color:rgba(255,255,255,0.4); margin-top:2px;">empresas avaliadas</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:14px 18px; flex:1; min-width:140px; max-width:200px; text-align:center;">
+                            <div style="font-size:1.4rem; font-weight:800; color:#4ade80;">17</div>
+                            <div style="font-size:0.65rem; color:rgba(255,255,255,0.4); margin-top:2px;">setores cobertos</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:14px 18px; flex:1; min-width:140px; max-width:200px; text-align:center;">
+                            <div style="font-size:1.4rem; font-weight:800; color:#fff;">4.8<span style="font-size:0.7rem; color:rgba(255,255,255,0.4);">/5</span></div>
+                            <div style="font-size:0.65rem; color:rgba(255,255,255,0.4); margin-top:2px;">satisfa&ccedil;&atilde;o</div>
+                        </div>
                     </div>
                 </div>
 
@@ -4574,6 +4596,21 @@
                 });
             }
         });
+    </script>
+    <script>
+    // Timer de urgencia
+    (function() {
+        var timerEl = document.getElementById('expiryTimer');
+        if (!timerEl) return;
+        var totalSeconds = 15 * 60;
+        var interval = setInterval(function() {
+            totalSeconds--;
+            if (totalSeconds <= 0) { clearInterval(interval); timerEl.textContent = '00:00'; return; }
+            var m = Math.floor(totalSeconds / 60);
+            var s = totalSeconds % 60;
+            timerEl.textContent = (m < 10 ? '0' + m : m) + ':' + (s < 10 ? '0' + s : s);
+        }, 1000);
+    })();
     </script>
 </body>
 </html>
