@@ -1759,45 +1759,57 @@
             </div>
 
             <!-- Velocimetro M&A -->
-            <div style="text-align:center; margin-bottom:24px;">
-                <div style="position:relative; width:220px; height:130px; margin:0 auto;">
-                    <!-- Arco do velocimetro -->
-                    <svg viewBox="0 0 220 130" style="width:100%; height:100%;">
-                        <!-- Trilha de fundo -->
-                        <path d="M 20 120 A 90 90 0 0 1 200 120" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="8" stroke-linecap="round"/>
-                        <!-- Arco preenchido (dourado) -->
-                        <path id="gaugeArc" d="M 20 120 A 90 90 0 0 1 200 120" fill="none" stroke="url(#goldGrad)" stroke-width="8" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="113"/>
-                        <!-- Gradiente -->
+            <div style="text-align:center; margin-bottom:28px; padding:20px 0;">
+                <div style="position:relative; width:280px; height:160px; margin:0 auto;">
+                    <svg viewBox="0 0 280 160" style="width:100%; height:100%;">
                         <defs>
                             <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" style="stop-color:rgba(201,168,76,0.2)"/>
+                                <stop offset="0%" style="stop-color:rgba(201,168,76,0.08)"/>
+                                <stop offset="60%" style="stop-color:rgba(201,168,76,0.5)"/>
                                 <stop offset="100%" style="stop-color:#c9a84c"/>
                             </linearGradient>
+                            <filter id="glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                         </defs>
-                        <!-- Marcacoes -->
-                        <text x="18" y="118" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter">0</text>
-                        <text x="100" y="18" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter" text-anchor="middle">1000</text>
-                        <text x="192" y="118" fill="rgba(255,255,255,0.12)" font-size="7" font-family="Inter">2000</text>
+                        <!-- Trilha -->
+                        <path d="M 30 140 A 110 110 0 0 1 250 140" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="6"/>
+                        <!-- Ticks pequenos -->
+                        <g stroke="rgba(255,255,255,0.06)" stroke-width="1">
+                            <line x1="30" y1="140" x2="38" y2="136" />
+                            <line x1="52" y1="92" x2="60" y2="96" />
+                            <line x1="92" y1="55" x2="96" y2="63" />
+                            <line x1="140" y1="30" x2="140" y2="39" />
+                            <line x1="188" y1="55" x2="184" y2="63" />
+                            <line x1="228" y1="92" x2="220" y2="96" />
+                            <line x1="250" y1="140" x2="242" y2="136" />
+                        </g>
+                        <!-- Arco preenchido -->
+                        <path id="gaugeArc" d="M 30 140 A 110 110 0 0 1 250 140" fill="none" stroke="url(#goldGrad)" stroke-width="6" stroke-linecap="round" stroke-dasharray="345" stroke-dashoffset="138" style="transition:stroke-dashoffset 2s ease;"/>
+                        <!-- Marcacoes de texto -->
+                        <text x="22" y="153" fill="rgba(255,255,255,0.1)" font-size="8" font-family="Inter">0</text>
+                        <text x="132" y="22" fill="rgba(255,255,255,0.1)" font-size="8" font-family="Inter" text-anchor="middle">1.000</text>
+                        <text x="248" y="153" fill="rgba(255,255,255,0.1)" font-size="8" font-family="Inter" text-anchor="end">2.000</text>
                         <!-- Ponteiro -->
-                        <line id="gaugeNeedle" x1="110" y1="120" x2="110" y2="40" stroke="#c9a84c" stroke-width="2" stroke-linecap="round" transform="rotate(-60, 110, 120)" style="transition:transform 1s ease-out;">
-                        </line>
+                        <line id="gaugeNeedle" x1="140" y1="140" x2="140" y2="48" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" filter="url(#glow)" transform="rotate(-60, 140, 140)" style="transition:transform 0.8s ease-out;"/>
                         <!-- Centro -->
-                        <circle cx="110" cy="120" r="4" fill="#c9a84c" opacity="0.8"/>
+                        <circle cx="140" cy="140" r="5" fill="#c9a84c" opacity="0.6"/>
+                        <circle cx="140" cy="140" r="2.5" fill="#c9a84c"/>
                     </svg>
                     <!-- Valor central -->
-                    <div style="position:absolute; bottom:8px; left:50%; transform:translateX(-50%); text-align:center;">
-                        <div id="maCounterGauge" style="font-family:'Inter',monospace; font-size:1.6rem; font-weight:800; color:#c9a84c; letter-spacing:1px; line-height:1;">487</div>
-                        <div style="font-size:0.5rem; color:rgba(255,255,255,0.2); text-transform:uppercase; letter-spacing:2px; margin-top:2px;">transa&ccedil;&otilde;es M&amp;A</div>
+                    <div style="position:absolute; bottom:16px; left:50%; transform:translateX(-50%); text-align:center; width:200px;">
+                        <div id="maCounterGauge" style="font-family:'Inter',monospace; font-size:1.8rem; font-weight:800; color:#c9a84c; letter-spacing:2px; line-height:1;">487</div>
+                        <div style="font-size:0.5rem; color:rgba(255,255,255,0.2); text-transform:uppercase; letter-spacing:2px; margin-top:4px;">transa&ccedil;&otilde;es M&amp;A no Brasil</div>
                     </div>
                 </div>
-                <!-- Volume abaixo -->
-                <div style="margin-top:4px; display:flex; align-items:baseline; justify-content:center; gap:4px;">
-                    <span style="font-size:0.65rem; color:rgba(201,168,76,0.4);">R$</span>
-                    <span id="maVolumeGauge" style="font-family:'Inter',monospace; font-size:1.1rem; font-weight:700; color:#c9a84c;">62,4</span>
-                    <span style="font-size:0.65rem; color:rgba(201,168,76,0.4);">bilh&otilde;es negociados em 2026</span>
+                <!-- Volume R$ ao vivo - contando sem parar -->
+                <div style="margin-top:2px;">
+                    <div style="display:flex; align-items:baseline; justify-content:center; gap:3px;">
+                        <span style="font-size:0.7rem; color:rgba(201,168,76,0.35);">R$</span>
+                        <span id="maVolumeGauge" style="font-family:'Inter',monospace; font-size:1.4rem; font-weight:800; color:#c9a84c; letter-spacing:1px;">62.418.730.422</span>
+                    </div>
+                    <div style="font-size:0.5rem; color:rgba(255,255,255,0.12); margin-top:4px;">volume negociado em 2026</div>
                 </div>
-                <div style="font-size:0.45rem; color:rgba(255,255,255,0.1); margin-top:6px;">
-                    <span style="display:inline-block; width:5px; height:5px; background:#c9a84c; border-radius:50%; margin-right:4px; vertical-align:middle; animation:maPulse 2s ease-in-out infinite;"></span>ao vivo &middot; Fonte: TTR, KPMG, PwC
+                <div style="font-size:0.45rem; color:rgba(255,255,255,0.08); margin-top:8px;">
+                    <span style="display:inline-block; width:5px; height:5px; background:#c9a84c; border-radius:50%; margin-right:4px; vertical-align:middle; animation:maPulse 2s ease-in-out infinite;"></span>ao vivo &middot; Fonte: TTR, KPMG, PwC, Deloitte
                 </div>
             </div>
 
@@ -4945,36 +4957,51 @@
         var needle = document.getElementById('gaugeNeedle');
         var arc = document.getElementById('gaugeArc');
 
-        function updateMA() {
-            var dStr = totalDeals.toLocaleString('pt-BR');
-            var vStr = totalVolume.toFixed(1).replace('.', ',');
-            if (elDealsGauge) elDealsGauge.textContent = dStr;
-            if (elVolGauge) elVolGauge.textContent = vStr;
-            // Ponteiro: 0 deals = -90deg, 2000 deals = +90deg
+        // Volume exato em reais (R$250bi/ano = ~R$685M/dia = ~R$7.930/segundo)
+        var volumeReais = totalVolume * 1000000000; // converte bilhoes para reais
+        var reaisPorSegundo = 7930;
+
+        function updateGauge() {
+            if (elDealsGauge) elDealsGauge.textContent = totalDeals.toLocaleString('pt-BR');
+            // Ponteiro: 0 = -90deg, 2000 = +90deg
             if (needle) {
-                var angle = -90 + (totalDeals / 2000) * 180;
-                angle = Math.min(angle, 90);
-                needle.setAttribute('transform', 'rotate(' + angle + ', 110, 120)');
+                var baseAngle = -90 + (totalDeals / 2000) * 180;
+                baseAngle = Math.min(baseAngle, 90);
+                // Tremida sutil como velocimetro real
+                var jitter = (Math.random() - 0.5) * 1.5;
+                needle.setAttribute('transform', 'rotate(' + (baseAngle + jitter) + ', 140, 140)');
             }
-            // Arco: dashoffset 283 (vazio) a 0 (cheio)
+            // Arco
             if (arc) {
-                var offset = 283 - (totalDeals / 2000) * 283;
-                offset = Math.max(offset, 0);
-                arc.setAttribute('stroke-dashoffset', offset);
+                var offset = 345 - (totalDeals / 2000) * 345;
+                arc.setAttribute('stroke-dashoffset', Math.max(offset, 0));
             }
         }
-        updateMA();
 
-        // Volume cresce visivelmente a cada 3 segundos
+        function updateVolume() {
+            if (elVolGauge) {
+                elVolGauge.textContent = Math.floor(volumeReais).toLocaleString('pt-BR');
+            }
+        }
+
+        updateGauge();
+        updateVolume();
+
+        // Volume conta sem parar - atualiza a cada 100ms (~R$793 por tick)
         setInterval(function() {
-            totalVolume += 0.0002 + Math.random() * 0.0003;
-            if (elVolGauge) elVolGauge.textContent = totalVolume.toFixed(1).replace('.', ',');
-        }, 3000);
+            volumeReais += reaisPorSegundo * 0.1 * (0.8 + Math.random() * 0.4);
+            updateVolume();
+        }, 100);
+
+        // Ponteiro treme sutilmente a cada 2s
+        setInterval(function() {
+            updateGauge();
+        }, 2000);
 
         // Deals incrementam a cada ~30min
         setInterval(function() {
             totalDeals++;
-            updateMA();
+            updateGauge();
         }, 1800000 + Math.random() * 600000);
     })();
 
