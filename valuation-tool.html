@@ -2554,10 +2554,10 @@
 
         const regionConfig = {
             pt: { currency: 'BRL', symbol: 'R$', locale: 'pt-BR', price: 'R$ 97,00', priceValue: 97.0, paymentLink: '', paymentMethods: 'Pix \u00b7 Cart\u00e3o \u00b7 Boleto', multiplesFactor: 1.0, decimalSep: ',', thousandSep: '.', sizeThresholds: [50000000, 10000000, 5000000, 1000000], illiquidityDiscount: 0.80 },
-            en: { currency: 'USD', symbol: '$', locale: 'en-US', price: '$19.99', priceValue: 19.99, paymentLink: '', paymentMethods: 'PayPal \u00b7 Credit Card', multiplesFactor: 1.6, decimalSep: '.', thousandSep: ',', sizeThresholds: [9000000, 1800000, 900000, 180000], illiquidityDiscount: 0.75 },
-            es: { currency: 'MXN', symbol: '$', locale: 'es-MX', price: '$349 MXN', priceValue: 349.0, paymentLink: '', paymentMethods: 'PayPal \u00b7 Tarjeta', multiplesFactor: 0.95, decimalSep: '.', thousandSep: ',', sizeThresholds: [175000000, 35000000, 17500000, 3500000], illiquidityDiscount: 0.80 },
-            fr: { currency: 'EUR', symbol: '\u20ac', locale: 'fr-FR', price: '17,99 \u20ac', priceValue: 17.99, paymentLink: '', paymentMethods: 'PayPal \u00b7 Carte bancaire', multiplesFactor: 1.3, decimalSep: ',', thousandSep: '\u00a0', sizeThresholds: [8300000, 1660000, 830000, 166000], illiquidityDiscount: 0.75 },
-            hi: { currency: 'INR', symbol: '\u20b9', locale: 'hi-IN', price: '\u20b91,499', priceValue: 1499.0, paymentLink: '', paymentMethods: 'PayPal \u00b7 Credit Card', multiplesFactor: 0.85, decimalSep: '.', thousandSep: ',', sizeThresholds: [770000000, 154000000, 77000000, 15400000], illiquidityDiscount: 0.82 }
+            en: { currency: 'USD', symbol: '$', locale: 'en-US', price: '$19', priceValue: 19.0, paymentLink: 'https://www.paypal.com/ncp/payment/5YMVRWAPKRXZS', paymentMethods: 'PayPal', multiplesFactor: 1.6, decimalSep: '.', thousandSep: ',', sizeThresholds: [9000000, 1800000, 900000, 180000], illiquidityDiscount: 0.75 },
+            es: { currency: 'MXN', symbol: '$', locale: 'es-MX', price: '$19 USD', priceValue: 19.0, paymentLink: 'https://www.paypal.com/ncp/payment/5YMVRWAPKRXZS', paymentMethods: 'PayPal', multiplesFactor: 0.95, decimalSep: '.', thousandSep: ',', sizeThresholds: [175000000, 35000000, 17500000, 3500000], illiquidityDiscount: 0.80 },
+            fr: { currency: 'EUR', symbol: '\u20ac', locale: 'fr-FR', price: '$19 USD', priceValue: 19.0, paymentLink: 'https://www.paypal.com/ncp/payment/5YMVRWAPKRXZS', paymentMethods: 'PayPal', multiplesFactor: 1.3, decimalSep: ',', thousandSep: '\u00a0', sizeThresholds: [8300000, 1660000, 830000, 166000], illiquidityDiscount: 0.75 },
+            hi: { currency: 'INR', symbol: '\u20b9', locale: 'hi-IN', price: '$19 USD', priceValue: 19.0, paymentLink: 'https://www.paypal.com/ncp/payment/5YMVRWAPKRXZS', paymentMethods: 'PayPal', multiplesFactor: 0.85, decimalSep: '.', thousandSep: ',', sizeThresholds: [770000000, 154000000, 77000000, 15400000], illiquidityDiscount: 0.82 }
         };
 
         const translations = {
@@ -4346,13 +4346,6 @@
                 localStorage.setItem('vp_results', JSON.stringify(currentResults));
                 localStorage.setItem('vp_lang', currentLang);
                 window.location.href = paymentLink;
-            } else {
-                // PayPal links not yet configured - show message
-                if (currentLang !== 'pt') {
-                    showToast('Payment link coming soon. Contact us for early access.');
-                } else {
-                    unlockReport();
-                }
             }
         }
 
@@ -4452,8 +4445,12 @@
                 });
                 restoreAndShowResults(true);
             }
-            // Voltou do MP com parametros de pagamento (fallback seguro)
+            // Voltou do MP/PayPal com parametros de pagamento (fallback seguro)
             else if (pending && (params.get('status') || params.get('collection_status') || params.get('payment_id') || params.get('collection_id') || params.get('PayerID'))) {
+                restoreAndShowResults(true);
+            }
+            // Voltou do PayPal NCP (sem parametros de redirect) - unlock se pending
+            else if (pending && !window.location.search) {
                 restoreAndShowResults(true);
             }
             // Ja pagou anteriormente (acesso por 30 dias) e tem resultados salvos
