@@ -1572,23 +1572,17 @@
         }
     </style>
 
-    <!-- Google Ads - Replace YOUR_ID with actual Google Ads ID -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18029764921"></script>
+    <!-- Conversion tracking (usa o gtag já inicializado no head) -->
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'AW-18029764921');
-
-      // Conversion tracking function
       function trackConversion(type) {
-        if (typeof gtag === 'function') {
-          if (type === 'calculate') {
-            gtag('event', 'conversion', {'send_to': 'AW-18029764921/CALC_CONVERSION'});
-          } else if (type === 'unlock') {
-            var _cfg = (typeof regionConfig !== 'undefined' && typeof currentLang !== 'undefined') ? regionConfig[currentLang] : { priceValue: 97.0, currency: 'BRL' };
-            gtag('event', 'conversion', {'send_to': 'AW-18029764921/PURCHASE_CONVERSION', 'value': _cfg.priceValue, 'currency': _cfg.currency});
-          }
+        if (typeof gtag !== 'function') return;
+        if (type === 'unlock') {
+          var _cfg = (typeof regionConfig !== 'undefined' && typeof currentLang !== 'undefined') ? regionConfig[currentLang] : { priceValue: 97.0, currency: 'BRL' };
+          gtag('event', 'conversion', {
+            'send_to': 'AW-18029764921/iFnwCJqLvY0cELnCoZVD',
+            'value': _cfg.priceValue,
+            'currency': _cfg.currency
+          });
         }
       }
     </script>
@@ -3921,7 +3915,6 @@
                 };
 
                 displayResults();
-                trackConversion('calculate');
                 // GA4 funnel tracking
                 gtag('event', 'calculate_valuation', {
                   sector: formData.sector,
@@ -4349,13 +4342,26 @@
             }
         }
 
-        function unlockReport() {
-            trackConversion('unlock');
+        function unlockReport(transactionId) {
+            var txId = transactionId || Date.now().toString();
+            var _cfg = regionConfig[currentLang] || regionConfig['pt'];
+            // Google Ads conversion — único ID, dispara sempre no unlock
+            gtag('event', 'conversion', {
+                'send_to': 'AW-18029764921/iFnwCJqLvY0cELnCoZVD',
+                'value': _cfg.priceValue,
+                'currency': _cfg.currency,
+                'transaction_id': txId
+            });
+            // GA4 purchase event
+            gtag('event', 'purchase', {
+              value: _cfg.priceValue,
+              currency: _cfg.currency,
+              transaction_id: txId
+            });
             document.getElementById('lockedContent').classList.add('unlocked');
             document.getElementById('paywallOverlay').classList.add('hidden');
             var ctaInline = document.getElementById('ctaInline');
             if (ctaInline) ctaInline.style.display = 'none';
-            // Reveal main value
             var teaser = document.getElementById('teaserResult');
             var fullVal = document.getElementById('fullValueResult');
             if (teaser) teaser.style.display = 'none';
@@ -4365,20 +4371,12 @@
                     animateValue('finalValue', currentResults.adjustedValuation);
                 }
             }
-            // Show action buttons
             var freeActions = document.getElementById('freeActions');
             if (freeActions) freeActions.style.display = '';
             localStorage.setItem('vp_unlocked', 'true');
             localStorage.setItem('vp_unlock_date', Date.now().toString());
             localStorage.removeItem('vp_pending_unlock');
             showToast(t('toast.unlocked'));
-            // GA4: track successful unlock
-            var _unlockCfg = regionConfig[currentLang] || regionConfig['pt'];
-            gtag('event', 'purchase', {
-              value: _unlockCfg.priceValue,
-              currency: _unlockCfg.currency,
-              transaction_id: Date.now().toString()
-            });
         }
 
         // Mostrar resultados (esconde formulario, mostra container)
@@ -4397,7 +4395,7 @@
         }
 
         // Restaurar resultados do localStorage e mostrar
-        function restoreAndShowResults(doUnlock) {
+        function restoreAndShowResults(doUnlock, txId) {
             var saved = localStorage.getItem('vp_results');
             if (saved) {
                 currentResults = JSON.parse(saved);
@@ -4408,11 +4406,11 @@
                     } catch(e) {
                         console.warn('displayResults parcial:', e.message);
                     }
-                    if (doUnlock) unlockReport();
+                    if (doUnlock) unlockReport(txId);
                 }, 300);
             } else if (doUnlock) {
                 showResultsContainer();
-                unlockReport();
+                unlockReport(txId);
             }
         }
 
@@ -4433,25 +4431,20 @@
             var savedLang = localStorage.getItem('vp_lang');
             if (savedLang && translations[savedLang]) currentLang = savedLang;
 
-            // Voltou do Mercado Pago com sucesso
+            // Voltou do pagamento (Mercado Pago ou PayPal)
+            var txId = mpPaymentId || ppToken || ppPayerId || Date.now().toString();
             if (pending && (isApproved || hasPaymentId)) {
-                // Google Ads conversion - fires only on confirmed payment
-                var _cfg = regionConfig[currentLang] || regionConfig['pt'];
-                gtag('event', 'conversion', {
-                    'send_to': 'AW-18029764921/iFnwCJqLvY0cELnCoZVD',
-                    'value': _cfg.priceValue,
-                    'currency': _cfg.currency,
-                    'transaction_id': mpPaymentId || ppToken
-                });
-                restoreAndShowResults(true);
+                localStorage.setItem('vp_tx_id', txId);
+                restoreAndShowResults(true, txId);
             }
-            // Voltou do MP/PayPal com parametros de pagamento (fallback seguro)
+            // Fallback: voltou com params de pagamento mas sem status approved
             else if (pending && (params.get('status') || params.get('collection_status') || params.get('payment_id') || params.get('collection_id') || params.get('PayerID'))) {
-                restoreAndShowResults(true);
+                localStorage.setItem('vp_tx_id', txId);
+                restoreAndShowResults(true, txId);
             }
-            // Voltou do PayPal NCP (sem parametros de redirect) - unlock se pending
+            // Voltou do PayPal NCP (sem params de redirect) - unlock se pending
             else if (pending && !window.location.search) {
-                restoreAndShowResults(true);
+                restoreAndShowResults(true, Date.now().toString());
             }
             // Ja pagou anteriormente (acesso por 30 dias) e tem resultados salvos
             else if (alreadyUnlocked) {
