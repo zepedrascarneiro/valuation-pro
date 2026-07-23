@@ -999,6 +999,22 @@
             flex-shrink: 0;
         }
 
+        .cad-input {
+            width: 100%;
+            padding: 12px 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+        .cad-input::placeholder { color: rgba(255,255,255,0.3); }
+        .cad-input:focus { border-color: #D4A853; }
+        .cad-input option { background: #14161a; color: #fff; }
+
         .btn-pay {
             width: 100%;
             padding: 16px;
@@ -1628,7 +1644,7 @@
           "name": "Quanto custa a avaliacao de empresa?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "A calculadora inicial e gratuita e mostra um diagnostico comparativo com o setor. O relatorio completo com 15 indicadores detalhados, benchmarks exclusivos e PDF profissional custa R$ 97,00 com acesso por 30 dias."
+            "text": "E totalmente gratuita. A calculadora mostra o valuation completo com 15 indicadores, benchmarks do setor e relatorio em PDF. Basta um cadastro rapido com nome e WhatsApp para liberar o resultado."
           }
         },
         {
@@ -2167,39 +2183,54 @@
                         <div style="font-size:0.75rem; color:rgba(74,222,128,0.8); margin-top:10px;">&#9989; Seu valuation foi calculado com sucesso</div>
                     </div>
 
-                    <!-- CTA PRINCIPAL -->
+                    <!-- CTA PRINCIPAL — CADASTRO GRATUITO (funil de leads) -->
                     <div style="background:linear-gradient(135deg, rgba(212,168,83,0.12), rgba(212,168,83,0.03)); border:2px solid rgba(212,168,83,0.35); border-radius:16px; padding:28px 24px; text-align:center; margin-bottom:16px;">
 
-                        <!-- Urgencia -->
-                        <div style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); border-radius:8px; padding:8px 16px; margin-bottom:16px; display:inline-block;">
-                            <span style="font-size:0.75rem; color:#f87171; font-weight:600;">&#9200; Seu resultado expira em <span id="expiryTimer">14:59</span></span>
+                        <div style="background:rgba(74,222,128,0.12); border:1px solid rgba(74,222,128,0.3); border-radius:8px; padding:6px 16px; margin-bottom:16px; display:inline-block;">
+                            <span style="font-size:0.72rem; color:#4ade80; font-weight:700; letter-spacing:0.5px;">100% GRATUITO</span>
                         </div>
 
                         <div style="font-size:1.3rem; font-weight:700; color:#fff; margin-bottom:4px;">Seu valuation est&aacute; pronto</div>
-                        <div style="font-size:0.85rem; color:rgba(255,255,255,0.5); margin-bottom:20px;">Desbloqueie o valor exato + relat&oacute;rio completo</div>
+                        <div style="font-size:0.85rem; color:rgba(255,255,255,0.5); margin-bottom:22px;">Preencha abaixo para ver o <strong style="color:#D4A853;">valor exato + relat&oacute;rio completo</strong></div>
 
-                        <div style="text-align:left; max-width:360px; margin:0 auto 20px;">
-                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:0.82rem; color:rgba(255,255,255,0.7);">
-                                <span style="color:#4ade80;">&#x2713;</span> <strong style="color:#fff;">Valor exato</strong> da sua empresa em R$
+                        <form id="cadastroForm" onsubmit="submitCadastro(event)" style="text-align:left; max-width:420px; margin:0 auto;">
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                                <div>
+                                    <label style="font-size:0.7rem; color:rgba(255,255,255,0.5); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:5px;">Nome *</label>
+                                    <input id="cadNome" required placeholder="Seu nome" class="cad-input">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.7rem; color:rgba(255,255,255,0.5); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:5px;">WhatsApp *</label>
+                                    <input id="cadWhats" required placeholder="(00) 00000-0000" inputmode="tel" class="cad-input">
+                                </div>
                             </div>
-                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:0.82rem; color:rgba(255,255,255,0.7);">
-                                <span style="color:#4ade80;">&#x2713;</span> <strong style="color:#fff;">15 indicadores</strong> usados por fundos de investimento
+                            <div style="margin-bottom:12px;">
+                                <label style="font-size:0.7rem; color:rgba(255,255,255,0.5); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:5px;">E-mail</label>
+                                <input id="cadEmail" type="email" placeholder="seu@email.com" class="cad-input">
                             </div>
-                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:0.82rem; color:rgba(255,255,255,0.7);">
-                                <span style="color:#4ade80;">&#x2713;</span> <strong style="color:#fff;">Relat&oacute;rio PDF</strong> pronto para investidores
+                            <div style="margin-bottom:12px;">
+                                <label style="font-size:0.7rem; color:rgba(255,255,255,0.5); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:5px;">Qual seu objetivo? *</label>
+                                <select id="cadObjetivo" required class="cad-input">
+                                    <option value="">Selecione...</option>
+                                    <option value="vender">Vender minha empresa</option>
+                                    <option value="captar">Captar investimento</option>
+                                    <option value="entender">S&oacute; entender o valor</option>
+                                    <option value="sociedade">Resolver uma sociedade</option>
+                                </select>
                             </div>
-                            <div style="display:flex; align-items:center; gap:8px; font-size:0.82rem; color:rgba(255,255,255,0.7);">
-                                <span style="color:#4ade80;">&#x2713;</span> Acesso por 30 dias para recalcular
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+                                <div>
+                                    <label style="font-size:0.7rem; color:rgba(255,255,255,0.5); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:5px;">Instagram pessoal</label>
+                                    <input id="cadIgPessoal" placeholder="@voce" class="cad-input">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.7rem; color:rgba(255,255,255,0.5); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:5px;">Instagram da empresa</label>
+                                    <input id="cadIgEmpresa" placeholder="@empresa" class="cad-input">
+                                </div>
                             </div>
-                        </div>
-
-                        <button class="btn-pay" onclick="handlePayment()" style="margin:0 auto; display:block; font-size:1.15rem; padding:20px 48px; width:100%; max-width:400px;">DESBLOQUEAR POR R$ 97,00</button>
-                        <div style="margin-top:10px; font-size:0.7rem; color:rgba(255,255,255,0.35);">Pix &middot; Cart&atilde;o &middot; Boleto &middot; Acesso imediato</div>
-
-                        <!-- Garantia -->
-                        <div style="margin-top:16px; padding:10px 16px; background:rgba(74,222,128,0.08); border:1px solid rgba(74,222,128,0.2); border-radius:8px; display:inline-block;">
-                            <span style="font-size:0.72rem; color:#4ade80;">&#128737; Garantia de 7 dias. N&atilde;o gostou? Devolvemos seu dinheiro.</span>
-                        </div>
+                            <button type="submit" id="cadBtn" class="btn-pay" style="margin:0 auto; display:block; font-size:1.1rem; padding:18px 40px; width:100%;">VER MEU VALUATION COMPLETO &rarr;</button>
+                        </form>
+                        <div style="margin-top:14px; font-size:0.7rem; color:rgba(255,255,255,0.35);">&#128274; Seus dados est&atilde;o seguros. Sem spam, sem cobran&ccedil;a.</div>
                     </div>
 
                     <!-- Social proof -->
@@ -2529,9 +2560,9 @@
         <!-- CTA final -->
         <div style="text-align:center;">
             <div style="font-size:1.1rem; font-weight:700; color:#fff; margin-bottom:8px;">Seu valuation est&aacute; pronto</div>
-            <div style="font-size:0.8rem; color:rgba(255,255,255,0.4); margin-bottom:16px;">Desbloqueie agora e saiba exatamente quanto vale seu neg&oacute;cio.</div>
-            <button class="btn-pay" onclick="handlePayment()" style="margin:0 auto; display:block; font-size:1rem; padding:16px 40px; width:100%; max-width:380px;" id="bottomPayBtn">DESBLOQUEAR POR R$ 97,00</button>
-            <div style="margin-top:8px; font-size:0.65rem; color:rgba(255,255,255,0.3);">&#128737; Garantia de 7 dias &middot; Pix, Cart&atilde;o ou Boleto</div>
+            <div style="font-size:0.8rem; color:rgba(255,255,255,0.4); margin-bottom:16px;">Cadastre-se gr&aacute;tis e veja exatamente quanto vale seu neg&oacute;cio.</div>
+            <button class="btn-pay" onclick="handlePayment()" style="margin:0 auto; display:block; font-size:1rem; padding:16px 40px; width:100%; max-width:380px;" id="bottomPayBtn">VER MEU VALUATION COMPLETO &rarr;</button>
+            <div style="margin-top:8px; font-size:0.65rem; color:rgba(255,255,255,0.3);">&#128274; 100% gratuito &middot; Sem cobran&ccedil;a</div>
         </div>
     </div>
 
@@ -3622,8 +3653,15 @@
         };
 
         let currentResults = {};
+        let currentFormData = {};
         let currentStep = 1;
         const totalSteps = 4;
+
+        // ── FUNIL DE CADASTRO (lead vai pra Central de Leads no Bene) ──────────
+        // Endpoint HTTPS do Bene. Ate o subdominio + HTTPS estarem no ar, o POST
+        // falha graciosamente e o backup por e-mail (FormSubmit) garante o lead.
+        const BENE_LEADS_URL = 'https://api.qualmeuvaluation.com.br/api/leads/valuation';
+        const LEADS_BACKUP_EMAIL = 'https://formsubmit.co/ajax/qualmeuvaluation@gmail.com';
 
         // ===== WIZARD NAVIGATION =====
         function nextStep(step) {
@@ -3766,6 +3804,7 @@
                     marketPosition: document.getElementById('marketPosition').value,
                     growth: document.getElementById('growth').value
                 };
+                currentFormData = formData;
 
                 const baseMultiples = sectorMultiples[formData.sector];
                 var mFactor = regionConfig[currentLang].multiplesFactor;
@@ -4319,27 +4358,97 @@
 
         }
 
-        // ===== PAYMENT WITH MERCADO PAGO =====
-        // Para configurar: crie um link de pagamento no Mercado Pago (R$ 97)
-        // e substitua a URL abaixo. O link deve ter back_url apontando para este site.
-        // Mercado Pago Dashboard: https://www.mercadopago.com.br/tools/list
-        const MERCADO_PAGO_LINK = 'https://mpago.la/1DwZqEQ';
+        // ===== CADASTRO (funil de leads — substitui o pagamento) =====
+        // Monta o payload do lead a partir do cadastro + dados da empresa + valuation.
+        function _montarLead() {
+            var cfg = regionConfig[currentLang] || regionConfig['pt'];
+            var f = currentFormData || {};
+            var r = currentResults || {};
+            return {
+                nome: (document.getElementById('cadNome').value || '').trim(),
+                whatsapp: (document.getElementById('cadWhats').value || '').trim(),
+                email: (document.getElementById('cadEmail').value || '').trim(),
+                objetivo: document.getElementById('cadObjetivo').value || '',
+                instagramPessoal: (document.getElementById('cadIgPessoal').value || '').trim(),
+                instagramEmpresa: (document.getElementById('cadIgEmpresa').value || '').trim(),
+                valuation: Math.round(r.adjustedValuation || 0),
+                moeda: cfg.currency,
+                idioma: currentLang,
+                origem: 'calculadora-valuation',
+                empresa: {
+                    nome: f.companyName || '',
+                    setor: f.sector || '',
+                    faturamento: f.revenue || 0,
+                    ebitda: f.ebitda || 0,
+                    lucro: f.netIncome || 0,
+                    funcionarios: f.employees || 0,
+                    posicaoMercado: f.marketPosition || '',
+                    crescimento: f.growth || '',
+                    dividaLiquida: f.debt || 0,
+                    valuationMin: Math.round(r.minValuation || 0),
+                    valuationMax: Math.round(r.maxValuation || 0),
+                    margemEbitda: r.ebitdaMargin != null ? +(r.ebitdaMargin).toFixed(1) : null,
+                    margemLiquida: r.netMargin != null ? +(r.netMargin).toFixed(1) : null,
+                    roe: r.roe != null ? +(r.roe).toFixed(1) : null
+                }
+            };
+        }
 
-        function handlePayment() {
-            // GA4: track unlock intent (not conversion - conversion fires on confirmed payment)
-            var cfg = regionConfig[currentLang];
-            gtag('event', 'click_unlock', {
-              value: cfg.priceValue,
-              currency: cfg.currency
-            });
-            var paymentLink = (currentLang === 'pt') ? MERCADO_PAGO_LINK : cfg.paymentLink;
+        async function submitCadastro(ev) {
+            if (ev) ev.preventDefault();
+            var btn = document.getElementById('cadBtn');
+            var lead = _montarLead();
+            if (!lead.nome || !lead.whatsapp || !lead.objetivo) return;
 
-            if (paymentLink) {
-                localStorage.setItem('vp_pending_unlock', 'true');
-                localStorage.setItem('vp_results', JSON.stringify(currentResults));
-                localStorage.setItem('vp_lang', currentLang);
-                window.location.href = paymentLink;
+            btn.disabled = true;
+            var btnTxt = btn.innerHTML;
+            btn.innerHTML = 'Enviando...';
+
+            // GA4 + Google Ads: agora o "lead" é a conversão (não a venda)
+            try { gtag('event', 'generate_lead', { value: lead.valuation, currency: lead.moeda }); } catch(e){}
+
+            var enviado = false;
+            // 1) Primário: Central de Leads no Bene (timeout curto pra não travar o usuário)
+            try {
+                var ctrl = new AbortController();
+                var tmo = setTimeout(function(){ ctrl.abort(); }, 4000);
+                var res = await fetch(BENE_LEADS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(lead),
+                    signal: ctrl.signal
+                });
+                clearTimeout(tmo);
+                if (res.ok) enviado = true;
+            } catch (e) { /* servidor fora / DNS ainda não propagou */ }
+
+            // 2) Backup por e-mail (garante que nenhum lead se perca)
+            if (!enviado) {
+                try {
+                    await fetch(LEADS_BACKUP_EMAIL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify({
+                            _subject: '[Valuation] Novo lead: ' + lead.nome,
+                            Nome: lead.nome, WhatsApp: lead.whatsapp, Email: lead.email,
+                            Objetivo: lead.objetivo, InstagramPessoal: lead.instagramPessoal,
+                            InstagramEmpresa: lead.instagramEmpresa,
+                            ValuationEstimado: lead.valuation, Empresa: JSON.stringify(lead.empresa)
+                        })
+                    });
+                } catch (e) { /* sem conexão — segue liberando mesmo assim */ }
             }
+
+            // Libera o resultado completo de qualquer forma (não travar o usuário)
+            btn.innerHTML = btnTxt;
+            btn.disabled = false;
+            unlockReport('lead_' + Date.now());
+        }
+
+        // Mantido por compatibilidade: o botão inferior agora rola até o cadastro
+        function handlePayment() {
+            var form = document.getElementById('cadastroForm');
+            if (form) { form.scrollIntoView({ behavior: 'smooth', block: 'center' }); document.getElementById('cadNome').focus(); }
         }
 
         function unlockReport(transactionId) {
@@ -5103,7 +5212,7 @@
 
     <div class="sticky-cta" id="stickyCTA">
         <span style="color:rgba(255,255,255,0.7); font-size:0.85rem; font-weight:600;">Seu valuation está pronto</span>
-        <button class="btn-pay" onclick="handlePayment()" style="padding:10px 28px; font-size:0.85rem;">DESBLOQUEAR R$ 97</button>
+        <button class="btn-pay" onclick="handlePayment()" style="padding:10px 28px; font-size:0.85rem;">VER GRÁTIS &rarr;</button>
     </div>
 </body>
 </html>
